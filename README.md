@@ -71,7 +71,7 @@
 						<font color="#000000" face="Arial" size="2"><b>Ajay Agarwal</b></font><b><font color="#000000" face="Arial" size="2"><br></font></b>
 						<font face="Arial" size="2">Soft Computing: Theory and Applications (<b>SoCTA</b>), 2022</font><br>					
 			<font face="Arial" size="2"><font color="#808080">
-					<a href="="https://link.springer.com/chapter/10.1007/978-981-19-9858-4_21">Paper</a></font></font>
+					<a href="https://link.springer.com/chapter/10.1007/978-981-19-9858-4_21">Paper</a></font></font>
 				</td>
 			</tr>
 
