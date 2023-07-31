@@ -1,5 +1,3 @@
-
-<!DOCTYPE html>
 <html>
 <head>
 	<meta content="en-us" http-equiv="Content-Language">
@@ -71,9 +69,9 @@
 				<td style="border-style: none; border-width: medium;" valign="top" width="1108">
 					<p style="margin-left: 10px; line-height: 150%; margin-top: 8px; margin-bottom: 8px;"><i><font face="Arial">Turing Machines Behind the Horizon: Modeling Black Hole Interiors as Transfinite Limited Turing Machines</font></i><font face="Arial"><i><font style="font-size: 12pt;"><br></font></i></font>
 						<font color="#000000" face="Arial" size="2"><b>Ajay Agarwal</b></font><b><font color="#000000" face="Arial" size="2"><br></font></b>
-						<font face="Arial" size="2">Soft Computing: Theory and Applications (<b>SoCTA</b>), 2022</font><br>
-					<font face="Arial" size="2">
-					<a href="="https://arxiv.org/abs/2212.00794"><font color="#808080"><font color="#808080">Paper</font></font>
+						<font face="Arial" size="2">Soft Computing: Theory and Applications (<b>SoCTA</b>), 2022</font><br>					
+			<font face="Arial" size="2"><font color="#808080">
+					<a href="="https://link.springer.com/chapter/10.1007/978-981-19-9858-4_21">Paper</a></font></font>
 				</td>
 			</tr>
 
@@ -86,7 +84,7 @@
 						<font color="#000000" face="Arial" size="2"><b>Ajay Agarwal</b></font><b><font color="#000000" face="Arial" size="2"><br></font></b>
 						<font face="Arial" size="2">International Conference On Business Research And Innovation, 2022</font><br>
 					<font face="Arial" size="2">
-						<a href="https://doi.org/10.4324/9781003366638"><font color="#808080"><font color="#808080">Paper</font></font
+						<a href="https://doi.org/10.4324/9781003366638"><font color="#808080"><font color="#808080">Paper</font></font></a>
 				</td>
 			</tr>
 
@@ -98,7 +96,7 @@
 						<font color="#000000" face="Arial" size="2"><b>Ajay Agarwal</b>, Basant Agarwal, Priyanka Harjule, Azizur Rahmna, and VN Manjunath Aradhya</font><b><font color="#000000" face="Arial" size="2"><br></font></b>
 						<font face="Arial" size="2">Journal of Experimental & Theoretical Artificial Intelligence</font><br>
 					<font face="Arial" size="2">
-						<a href="https://doi.org/10.1080/0952813X.2021.1960637"><font color="#808080"><font color="#808080">Paper</font></font>
+						<a href="https://doi.org/10.1080/0952813X.2021.1960637"><font color="#808080"><font color="#808080">Paper</font></font></a>
 				</td>
 			</tr>
 
@@ -106,11 +104,11 @@
 				<td style="border-style: none; border-width: medium;" valign="top" width="19">&nbsp;</td>
 				<td bgcolor="#FFCC99" style="border-style: none; border-width: medium;" valign="top" width="14">&nbsp;</td>
 				<td style="border-style: none; border-width: medium;" valign="top" width="1108">
-					<p style="margin-left: 10px; line-height: 150%; margin-top: 8px; margin-bottom: 8px;"><i><font face="Arial">TUnderstanding the role of Feature Engineering in Fake News Detection</font></i><font face="Arial"><i><font style="font-size: 12pt;"><br></font></i></font>
+					<p style="margin-left: 10px; line-height: 150%; margin-top: 8px; margin-bottom: 8px;"><i><font face="Arial">Understanding the role of Feature Engineering in Fake News Detection</font></i><font face="Arial"><i><font style="font-size: 12pt;"><br></font></i></font>
 						<font color="#000000" face="Arial" size="2"><b>Ajay Agarwal</b>, Basant Agarwal, and Priyanka Harjule</font><b><font color="#000000" face="Arial" size="2"><br></font></b>
 						<font face="Arial" size="2">Soft Computing: Theory and Applications (<b>SoCTA</b>), 2021</font><br>
 					<font face="Arial" size="2">
-						<a href="http://dx.doi.org/10.1007/978-981-19-0707-4_70"><font color="#808080"><font color="#808080">Paper</font></font>
+						<a href="http://dx.doi.org/10.1007/978-981-19-0707-4_70"><font color="#808080"><font color="#808080">Paper</font></font></a>
 				</td>
 			</tr>
 			
