@@ -56,12 +56,16 @@
 			</tr>
 		</tbody>
 	</table><br>
+	
+	
 	<meta charset="utf-8">
 	<p><b><font face="Arial" size="4">Selected Publications</font></b></p>
 	<p><span class="style8"><strong><font face="Arial"><a href="https://scholar.google.com/citations?hl=en&user=5L4jQjwAAAAJ;hl=en"><font color="#808080">Google Scholar Profile</font></a><br></font></strong></span></p>
  <p><span class="style8"><strong><font face="Arial"><a href="https://scholar.google.com/citations?hl=en&user=5L4jQjwAAAAJ;hl=en"><font color="#808080">CV</font></a><br></font></strong></span></p>
-	<table border="1" id="table2" style="border-width: 0px;" width="1154">
-		<tbody>
+	
+ 
+ <table border="1" id="table2" style="border-width: 0px;" width="1154">
+<tbody>
 
 			<tr>
 				<td style="border-style: none; border-width: medium;" valign="top" width="19">&nbsp;</td>
@@ -70,7 +74,7 @@
 					<p style="margin-left: 10px; line-height: 150%; margin-top: 8px; margin-bottom: 8px;"><i><font face="Arial">Turing Machines Behind the Horizon: Modeling Black Hole Interiors as Transfinite Limited Turing Machines</font></i><font face="Arial"><i><font style="font-size: 12pt;"><br></font></i></font>
 						<font color="#000000" face="Arial" size="2"><b>Ajay Agarwal</b></font><b><font color="#000000" face="Arial" size="2"><br></font></b>
 						<font face="Arial" size="2">Soft Computing: Theory and Applications (<b>SoCTA</b>), 2022</font><br>					
-			<font face="Arial" size="2"><font color="#808080">
+			        <font face="Arial" size="2"><font color="#808080">
 					<a href="https://link.springer.com/chapter/10.1007/978-981-19-9858-4_21">Paper</a></font></font>
 				</td>
 			</tr>
