@@ -29,7 +29,7 @@ body { height: 100%; }
   .gallery {
     display: grid;
     grid-template-columns: repeat(8, 12fr);
-    grid-template-rows: repeat(8, 12vw);
+    grid-template-rows: repeat(4, 10vw);
     grid-gap: 0.5rem;
     width: 100vw;
     height: 100vh;
@@ -100,7 +100,7 @@ body { height: 100%; }
 
 .gallery__item--6 {
   grid-column-start: 1;
-  grid-column-end: 6;
+  grid-column-end: 5;
   grid-row-start: 11;
   grid-row-end: 14;
 
@@ -122,9 +122,9 @@ body { height: 100%; }
 
   .gallery__item--8 {
   grid-column-start: 1;
-  grid-column-end: 4;
+  grid-column-end: 7;
   grid-row-start: 14;
-  grid-row-end: 17;
+  grid-row-end: 18;
 
   /** Alternative Syntax **/
   /* grid-column: 5 / span 4; */
