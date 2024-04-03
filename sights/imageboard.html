@@ -5,34 +5,37 @@
         <meta charset="UTF-8" />
         <meta name="author" />
         <title>imageboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
         <link rel="stylesheet" href="styles.css">
         
-            
-/* Avoid page breaks inside the most common attributes, especially for exports (i.e. PDF) */
-td, h1, h2, h3, h4, h5, p, ul, ol, li {
-    page-break-inside: avoid; 
-}
+    
+
 
       </head>
     <body>
-        <div class = "grid">
-            
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="shortcut icon" type="image/png" href="img/favicon.png">
 
-            <div class="grid-item">
-                <img src = "/img/a.jpg"></img>
-            </div>
-             <div class="grid-item grid-item--width2">
-                <img src = "/img/b.jpg"></img>
-            </div>
-         <div class="grid-item grid-item--height2">
-                <img src = "/img/c.jpg"></img>
-            </div>
-         <div class="grid-item">
-                <img src = "/img/d.jpg"></img>
-            </div>
-        
+        <title>CSS Grids Gallery</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="gallery">
+                <figure class="gallery__item gallery__item--1">
+                    <img src="img/a.jpg" alt="Gallery image 1" class="gallery__img">
+                </figure>
+                <figure class="gallery__item gallery__item--2">
+                    <img src="img/b.jpg" alt="Gallery image 2" class="gallery__img">
+                </figure>
+                <figure class="gallery__item gallery__item--3">
+                    <img src="img/d.jpg" alt="Gallery image 3" class="gallery__img">
+                </figure>
+                <figure class="gallery__item gallery__item--4">
+                    <img src="img/c.jpg" alt="Gallery image 4" class="gallery__img">
+                </figure>
+                </div>
         </div>
-        <script src="/java_scripts/masonry.pkgd.min.js"></script>
 
     </body>
 </html>
