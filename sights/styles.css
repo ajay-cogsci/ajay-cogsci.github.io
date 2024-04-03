@@ -22,6 +22,8 @@ html {
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 5vw);
   grid-gap: 1.5rem; 
+  width: 100vw;
+  height: 100vh;
 }
 
 .gallery__img {
