@@ -1,7 +1,7 @@
 *,
 *::after,
 *::before {
-  margin: 0;
+  margin: -3 px;
   padding: 0;
   box-sizing: inherit; 
   
@@ -24,13 +24,14 @@ body { height: 100%; }
   margin: 0.5rem auto; 
 }
 
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(8, 12fr);
-  grid-template-rows: repeat(8, 5vw);
-  grid-gap: 0.5rem; 
-  width: 100vw;
-  height: 100vh;
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 12vw);
+    grid-gap: 0.5rem;
+    width: 100vw;
+    height: 100vh;
 }
 
 .gallery__img {
