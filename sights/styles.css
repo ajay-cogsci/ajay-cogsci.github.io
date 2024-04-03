@@ -7,3 +7,9 @@
 
 .grid-item--width2 { width: 160px; }
 .grid-item--height2 { height: 140px; }
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
