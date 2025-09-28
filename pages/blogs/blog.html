@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajay's Baking Blog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #fdfaf6;
+            --card-background: #ffffff;
+            --text-color: #3d3d3d;
+            --heading-color: #a27b5c;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            color: var(--heading-color);
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .recipe-card {
+            background-color: var(--card-background);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow-color);
+        }
+
+        .recipe-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .recipe-content {
+            padding: 1.5rem;
+        }
+
+        .recipe-content h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--heading-color);
+            margin-top: 0;
+        }
+        
+        .recipe-content h3 {
+            border-bottom: 2px solid var(--heading-color);
+            padding-bottom: 5px;
+            margin-top: 1.5rem;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>My Baking Blog</h1>
+        <p>A collection of my favorite recipes</p>
+    </div>
+
+    <div class="recipe-grid">
+
+        <div class="recipe-card">
+            <img src="images/cookies.jpg" alt="Chocolate Chip Cookies">
+            <div class="recipe-content">
+                <h2>Classic Chocolate Chip Cookies</h2>
+                <h3>Ingredients:</h3>
+                <ul>
+                    <li>1 cup (2 sticks) unsalted butter, softened</li>
+                    <li>3/4 cup granulated sugar</li>
+                    <li>3/4 cup packed brown sugar</li>
+                    <li>2 large eggs</li>
+                    <li>1 teaspoon vanilla extract</li>
+                    <li>2 1/4 cups all-purpose flour</li>
+                    <li>1 teaspoon baking soda & 1/2 tsp salt</li>
+                    <li>2 cups semisweet chocolate chips</li>
+                </ul>
+                <h3>Instructions:</h3>
+                <ol>
+                    <li>Preheat oven to 375°F (190°C).</li>
+                    <li>Cream together butter and sugars. Beat in eggs and vanilla.</li>
+                    <li>In a separate bowl, whisk dry ingredients.</li>
+                    <li>Gradually add dry to wet ingredients. Stir in chips.</li>
+                    <li>Drop by spoonfuls onto baking sheets.</li>
+                    <li>Bake for 10-12 minutes until golden.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="recipe-card">
+            <img src="loaf_cake.jpg" alt="Choco Pound Cake">
+            <div class="recipe-content">
+                <h2>Ultimate Fudgy Brownies</h2>
+                <h3>Ingredients:</h3>
+                <ul>
+                    <li>1 cup (2 sticks) unsalted butter, melted</li>
+                    <li>2 cups granulated sugar</li>
+                    <li>4 large eggs</li>
+                    <li>1 1/4 cups all-purpose flour</li>
+                    <li>3/4 cup unsweetened cocoa powder</li>
+                    <li>1/2 teaspoon salt</li>
+                    <li>1 cup chocolate chunks</li>
+                </ul>
+                <h3>Instructions:</h3>
+                <ol>
+                    <li>Preheat oven to 350°F (175°C).</li>
+                    <li>Combine melted butter and sugar. Whisk in eggs.</li>
+                    <li>Sift in flour, cocoa powder, and salt. Mix until just combined.</li>
+                    <li>Fold in chocolate chunks.</li>
+                    <li>Pour into a greased 9x13 inch pan.</li>
+                    <li>Bake for 25-30 minutes. Let cool completely before cutting.</li>
+                </ol>
+            </div>
+        </div>
+
+        </div>
+
+</body>
+</html>
