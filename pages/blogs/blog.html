@@ -7,17 +7,17 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@800&family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&family=Playfair+Display:wght@800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --background: #FFF5F7;      /* Light Pink Background */
+            --background: #FFF8F9;      /* Very light, soft pink background */
             --card-background: #FFFFFF;
-            --text-main: #333;
-            --text-light: #707070;
-            --accent-primary: #A076F9;  /* Vibrant Purple */
-            --accent-secondary: #D9ACF5;/* Light Purple/Lilac */
-            --shadow-color: rgba(160, 118, 249, 0.15);
+            --text-main: #4D4545;       /* Warm, dark grey for text */
+            --text-light: #8A7F7F;
+            --accent-primary: #D48C8C;  /* Dusty Rose for main accents */
+            --accent-secondary: #F0B4B4;/* Light Rose for borders */
+            --shadow-color: rgba(212, 140, 140, 0.15);
         }
 
         body {
@@ -33,17 +33,17 @@
 
         /* --- GLOBAL STYLES --- */
         .site-title {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Great Vibes', cursive;
             text-align: center;
-            font-size: 3rem;
+            font-size: 5rem;
+            font-weight: normal;
             color: var(--accent-primary);
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
         }
 
         /* --- RECIPE GALLERY --- */
         .recipe-gallery {
             display: grid;
-            /* Creates responsive columns that are at least 400px wide */
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 2.5rem;
             max-width: 1400px;
@@ -55,7 +55,7 @@
             background-color: var(--card-background);
             border-radius: 15px;
             box-shadow: 0 8px 20px var(--shadow-color);
-            overflow: hidden; /* Keeps the image corners rounded */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -77,12 +77,14 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            /* This is the fix for the image cropping. It centers the image. */
+            object-position: center; 
         }
 
         /* --- CARD CONTENT --- */
         .card-content-wrapper {
             padding: 1.5rem 2rem;
-            flex-grow: 1; /* Allows content to fill available space */
+            flex-grow: 1;
         }
 
         .recipe-title {
@@ -109,17 +111,15 @@
         /* --- RECIPE LAYOUT INSIDE CARD --- */
         .recipe-grid {
             display: grid;
-            grid-template-columns: 1fr; /* Default to a single column */
+            grid-template-columns: 1fr;
             gap: 2rem;
         }
         
-        /* Apply two-column layout only on larger screens */
         @media (min-width: 1024px) {
             .recipe-grid {
-                 grid-template-columns: 1fr 1.5fr; /* Ingredients take less space */
+                 grid-template-columns: 1fr 1.5fr;
             }
         }
-
 
         .recipe-grid h3 {
             font-family: 'Playfair Display', serif;
@@ -156,6 +156,7 @@
 
         b {
             font-weight: 600;
+            color: var(--text-main);
         }
         
         .method-image {
@@ -168,7 +169,7 @@
         .notes-section {
             margin-top: 2.5rem;
             padding: 1.5rem;
-            background-color: #f9f6ff;
+            background-color: #fdf5f5;
             border-radius: 8px;
             border-left: 4px solid var(--accent-primary);
         }
@@ -191,23 +192,23 @@
         }
 
         .notes-section li::before {
-            content: '🧁';
+            content: '✨';
             position: absolute;
             left: 0;
             top: 2px;
             font-size: 1rem;
         }
 
-        /* Responsive Design for smaller screens */
+        /* Responsive Design */
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
             }
             .site-title {
-                font-size: 2.5rem;
+                font-size: 4rem;
             }
             .recipe-gallery {
-                grid-template-columns: 1fr; /* Stack cards on top of each other */
+                grid-template-columns: 1fr;
                 gap: 2rem;
             }
             .card-content-wrapper {
@@ -224,7 +225,7 @@
 
     <div class="recipe-card">
         <header class="card-image-container">
-            <img src="/images/poundcake.jpg" alt="A beautiful chocolate pound cake in a loaf pan">
+            <img src="https://ajay-cogsci.github.io/images/poundcake.jpg" alt="A beautiful chocolate pound cake in a loaf pan">
         </header>
         <main class="card-content-wrapper">
             <h2 class="recipe-title">Chocolate Pound Cake</h2>
@@ -259,7 +260,7 @@
                         <li><b>Pour:</b> Fill pan to about halfway and smooth the top.</li>
                         <li><b>Bake:</b> In a 160°C toaster oven for <b> 20 minutes in 10 minute intervals while rotating the pan each time</b>. Then, <b> for another 5 minutes</b> Tent with foil if browning too quickly.</li>
                         <li><b>Check Doneness:</b> A skewer should come out with a few moist crumbs.
-                            <img src="/images/poundcake-closeup.jpg" alt="Close-up of chocolate loaf slice texture" class="method-image">
+                            <img src="https://ajay-cogsci.github.io/images/poundcake-closeup.jpg" alt="Close-up of chocolate loaf slice texture" class="method-image">
                         </li>
                         <li><b>Cool:</b> Let sit in pan for 5 min, then cool completely on a rack.</li>
                     </ol>
