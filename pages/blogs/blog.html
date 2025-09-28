@@ -7,173 +7,195 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --background-color: #FBF8F3;
-            --text-color: #3D352E;
-            --accent-color: #D3756B;
-            --card-background: #FFFFFF;
-            --shadow-color: rgba(61, 53, 46, 0.1);
-            --border-color: #EFEAE4;
+            --background: #FDFCFB;
+            --text-main: #1a1a1a;
+            --text-light: #666666;
+            --accent: #8E44AD; /* A deep, elegant purple for a unique touch */
+            --border-color: #EAEAEA;
         }
 
         body {
-            font-family: 'Source Sans Pro', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
             margin: 0;
-            padding: 3rem 2rem;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 4rem;
+        /* Animation for a subtle fade-in effect on load */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 3.5rem;
-            color: var(--text-color);
-            margin: 0;
-        }
-        
-        .header p {
-            font-size: 1.1rem;
-            color: var(--accent-color);
-        }
-        
-        /* This is the main container for all your recipes */
-        .recipe-collection {
-            display: flex;
-            flex-direction: column;
-            gap: 4rem;
-            max-width: 1100px;
+        .recipe-container {
+            max-width: 900px;
             margin: 0 auto;
+            animation: fadeIn 0.8s ease-out forwards;
         }
 
-        /* The new split-panel recipe card */
-        .recipe-entry {
-            display: flex;
-            background-color: var(--card-background);
-            border-radius: 10px;
-            box-shadow: 0 10px 30px var(--shadow-color);
+        /* --- HERO IMAGE SECTION --- */
+        .hero-image-container {
+            width: 100%;
+            height: 50vh; /* 50% of the viewport height */
+            max-height: 550px; /* Caps the height on very large screens */
+            background-color: var(--border-color); /* Fallback color */
             overflow: hidden;
-            transition: box-shadow 0.3s ease;
-        }
-        
-        .recipe-entry:hover {
-            box-shadow: 0 15px 40px var(--shadow-color);
         }
 
-        .recipe-image {
-            flex: 0 0 45%; /* Image takes up 45% of the width */
-        }
-
-        .recipe-image img {
+        .hero-image-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* This makes the image fill the container beautifully */
+            object-fit: cover; /* Perfect for a hero image */
         }
 
-        .recipe-content {
-            flex: 1; /* Content takes up the remaining space */
-            padding: 2.5rem;
-            overflow-y: auto; /* Allows content to scroll if it's too long */
+        /* --- RECIPE CONTENT SECTION --- */
+        .recipe-content-wrapper {
+            padding: 4rem 2rem;
         }
-        
-        .recipe-content h2 {
+
+        .recipe-title {
             font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            margin-top: 0;
-            margin-bottom: 0.5rem;
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
         }
         
         .recipe-details {
-            font-size: 0.9em;
-            color: #8c7d70;
-            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 4rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
-        .recipe-content h3 {
+        .recipe-details span {
+            margin: 0 10px;
+        }
+        
+        /* The new two-column layout for the core recipe */
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* Ingredients take 1/3, Method takes 2/3 */
+            gap: 4rem;
+        }
+        
+        .recipe-grid h3 {
             font-family: 'Playfair Display', serif;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-            margin-top: 2rem;
-            color: var(--text-color);
-            font-weight: 700;
-        }
-
-        ul, ol {
-            padding-left: 20px;
-            line-height: 1.6;
-        }
-
-        li {
-            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            margin-top: 0;
+            font-size: 1.5rem;
         }
         
+        .ingredients-list ul, .method-list ol {
+            padding-left: 0;
+            list-style-position: outside;
+        }
+        
+        .ingredients-list ul {
+            list-style-type: none;
+        }
+        
+        .ingredients-list li {
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .method-list ol {
+            padding-left: 20px;
+        }
+        
+        .method-list li {
+            margin-bottom: 1.5rem;
+            padding-left: 5px;
+        }
+
         b {
-            color: var(--text-color);
             font-weight: 600;
         }
-
-        /* Styling for inline images within the method section */
+        
         .method-image {
-            width: 80%; /* Adjust as needed */
-            max-width: 300px; /* Max size for the image */
-            display: block; /* Centers the image */
-            margin: 1.5rem auto; /* Adds space above/below and centers */
+            width: 100%;
+            margin: 1.5rem 0;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
+        /* --- NOTES SECTION --- */
+        .notes-section {
+            margin-top: 4rem;
+            padding: 2rem;
+            background-color: #F7F7F7;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .notes-section h3 {
+            margin-top: 0;
+            font-family: 'Playfair Display', serif;
+        }
+        
         .notes-section ul {
-            list-style-type: '💡';
-            padding-left: 25px;
+            list-style-type: none;
+            padding-left: 0;
         }
+        
         .notes-section li {
-            padding-left: 10px;
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 1rem;
         }
 
-        /* Responsive Design for Mobile */
-        @media (max-width: 850px) {
-            body {
-                padding: 2rem 1rem;
-            }
-            .recipe-entry {
-                flex-direction: column; /* Stacks image on top of content */
-            }
-            .recipe-image {
-                height: 300px; /* Give the image a fixed height on mobile */
-            }
+        .notes-section li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1rem;
         }
 
+        /* Responsive Design for smaller screens */
+        @media (max-width: 768px) {
+            .recipe-grid {
+                grid-template-columns: 1fr; /* Stack columns on top of each other */
+                gap: 3rem;
+            }
+            .recipe-content-wrapper {
+                padding: 3rem 1rem;
+            }
+            .recipe-title {
+                font-size: 2.8rem;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>My Baking Blog</h1>
-        <p>A collection of my favorite recipes</p>
-    </div>
+<div class="recipe-container">
 
-    <div class="recipe-collection">
+    <header class="hero-image-container">
+        <img src="/images/chocolate-loaf-whole.jpg" alt="A beautiful chocolate pound cake in a loaf pan">
+    </header>
 
-        <div class="recipe-entry">
-            <div class="recipe-image">
-                <img src="/images/poundcake.jpg" alt="Mini Chocolate Airy Loaf">
-            </div>
-            <div class="recipe-content">
-                <h2>Chocolate Pound Cake</h2>
-                <div class="recipe-details">
-                    <span>Pan size: 24×7 cm</span> | <span>Oven temp: 160°C</span> | <span>Baking Time: 10+10+5 mins</span>
-                </div>
-                
-                <h3>Ingredients:</h3>
+    <main class="recipe-content-wrapper">
+        <h1 class="recipe-title">Chocolate Pound Cake</h1>
+        <p class="recipe-details">
+            <span>Pan size: 24×7 cm</span> | <span>Oven temp: 160°C</span> | <span>Baking Time: 10+10+5 mins</span>
+        </p>
+
+        <div class="recipe-grid">
+            <div class="ingredients-list">
+                <h3>Ingredients</h3>
                 <ul>
                     <li><b>Eggs (M/MS):</b> 2 (~100 g)</li>
                     <li><b>White Sugar:</b> 70 g</li>
@@ -185,8 +207,10 @@
                     <li><b>Vanilla Extract:</b> ½ tsp (optional)</li>
                     <li><b>Salt:</b> tiny pinch</li>
                 </ul>
+            </div>
 
-                <h3>Method:</h3>
+            <div class="method-list">
+                <h3>Method</h3>
                 <ol>
                     <li><b>Prep:</b> Line your 24×7 cm loaf pan with baking paper.</li>
                     <li><b>Whip:</b> Whisk eggs and both sugars until pale, thick, and foamy (ribbon stage).</li>
@@ -196,24 +220,24 @@
                     <li><b>Pour:</b> Fill pan to about halfway and smooth the top.</li>
                     <li><b>Bake:</b> In a 160°C toaster oven for <b> 20 minutes in 10 minute intervals while rotating the pan each time</b>. Then, <b> for another 5 minutes</b> Tent with foil if browning too quickly.</li>
                     <li><b>Check Doneness:</b> A skewer should come out with a few moist crumbs.
-                        <img src="/images/poundcake-closeup.jpg" alt="Close-up of chocolate loaf slice texture" class="method-image">
+                        <img src="/images/chocolate-loaf-slice-closeup.jpg" alt="Close-up of chocolate loaf slice texture" class="method-image">
                     </li>
                     <li><b>Cool:</b> Let sit in pan for 5 min, then cool completely on a rack.</li>
                 </ol>
-
-                <h3>Notes:</h3>
-                <div class="notes-section">
-                    <ul>
-                        <li><b>Egg whip is key:</b> Longer whipping creates a lighter loaf.</li>
-                        <li><b>Folding technique:</b> Fold, don’t stir, to preserve air bubbles.</li>
-                        <li><b>Toaster Oven:</b> Rotate pan halfway if your oven heats unevenly.</li>
-                        <li><b>Batter texture:</b> Should be glossy, thick, but still pourable.</li>
-                    </ul>
-                </div>
             </div>
         </div>
-        
+
+        <div class="notes-section">
+            <h3>Notes & Tips</h3>
+            <ul>
+                <li><b>Egg whip is key:</b> Longer whipping creates a lighter loaf.</li>
+                <li><b>Folding technique:</b> Fold, don’t stir, to preserve air bubbles.</li>
+                <li><b>Toaster Oven:</b> Rotate pan halfway if your oven heats unevenly.</li>
+                <li><b>Batter texture:</b> Should be glossy, thick, but still pourable.</li>
+            </ul>
         </div>
+    </main>
+</div>
 
 </body>
 </html>
