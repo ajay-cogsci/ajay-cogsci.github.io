@@ -14,6 +14,7 @@
             --text-color: #3d3d3d;
             --heading-color: #a27b5c;
             --shadow-color: rgba(0, 0, 0, 0.08);
+            --note-background: #fdfaf6;
         }
 
         body {
@@ -75,6 +76,12 @@
             padding-bottom: 5px;
             margin-top: 1.5rem;
         }
+        
+        .recipe-details {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 1rem;
+        }
 
         ul, ol {
             padding-left: 20px;
@@ -82,6 +89,15 @@
 
         li {
             margin-bottom: 0.5rem;
+        }
+
+        /* Styling for the new Notes section */
+        .notes-section ul {
+            list-style-type: '💡'; /* Fun emoji bullet point */
+            padding-left: 25px;
+        }
+        .notes-section li {
+            padding-left: 10px;
         }
 
     </style>
@@ -96,57 +112,51 @@
     <div class="recipe-grid">
 
         <div class="recipe-card">
-            <img src="images/cookies.jpg" alt="Chocolate Chip Cookies">
+            <img src="images/chocolate-loaf.jpg" alt="Mini Chocolate Airy Loaf">
             <div class="recipe-content">
-                <h2>Classic Chocolate Chip Cookies</h2>
+                <h2>2-Egg Mini Chocolate Airy Loaf</h2>
+                <div class="recipe-details">
+                    <span>Pan size: 24×7 cm</span> | <span>Oven temp: 160°C</span>
+                </div>
+                
                 <h3>Ingredients:</h3>
                 <ul>
-                    <li>1 cup (2 sticks) unsalted butter, softened</li>
-                    <li>3/4 cup granulated sugar</li>
-                    <li>3/4 cup packed brown sugar</li>
-                    <li>2 large eggs</li>
-                    <li>1 teaspoon vanilla extract</li>
-                    <li>2 1/4 cups all-purpose flour</li>
-                    <li>1 teaspoon baking soda & 1/2 tsp salt</li>
-                    <li>2 cups semisweet chocolate chips</li>
+                    <li><b>Eggs (M/MS):</b> 2 (~100 g)</li>
+                    <li><b>White Sugar:</b> 70 g</li>
+                    <li><b>Brown Sugar:</b> 30 g</li>
+                    <li><b>Butter (softened):</b> 85 g</li>
+                    <li><b>Cake Flour (薄力粉):</b> 75 g</li>
+                    <li><b>Cocoa Powder:</b> 10 g</li>
+                    <li><b>Baking Powder:</b> ½ tsp (optional)</li>
+                    <li><b>Vanilla Extract:</b> ½ tsp (optional)</li>
+                    <li><b>Salt:</b> tiny pinch</li>
                 </ul>
-                <h3>Instructions:</h3>
+
+                <h3>Method:</h3>
                 <ol>
-                    <li>Preheat oven to 375°F (190°C).</li>
-                    <li>Cream together butter and sugars. Beat in eggs and vanilla.</li>
-                    <li>In a separate bowl, whisk dry ingredients.</li>
-                    <li>Gradually add dry to wet ingredients. Stir in chips.</li>
-                    <li>Drop by spoonfuls onto baking sheets.</li>
-                    <li>Bake for 10-12 minutes until golden.</li>
+                    <li><b>Prep:</b> Line your 24×7 cm loaf pan with baking paper.</li>
+                    <li><b>Whip:</b> Whisk eggs and both sugars until pale, thick, and foamy (ribbon stage).</li>
+                    <li><b>Sift:</b> Combine flour, cocoa, baking powder, and salt. Sift together.</li>
+                    <li><b>Fold:</b> Gently fold the dry mix into the egg-sugar foam with a spatula.</li>
+                    <li><b>Add Butter:</b> Gently melt butter, cool slightly, then fold carefully into the batter.</li>
+                    <li><b>Pour:</b> Fill pan to about halfway and smooth the top.</li>
+                    <li><b>Bake:</b> In a 160°C toaster oven for 20-30 min. Check at 18 min. Tent with foil if browning too quickly.</li>
+                    <li><b>Check Doneness:</b> A skewer should come out with a few moist crumbs.</li>
+                    <li><b>Cool:</b> Let sit in pan for 5 min, then cool completely on a rack.</li>
                 </ol>
+
+                <h3>Notes:</h3>
+                <div class="notes-section">
+                    <ul>
+                        <li><b>Egg whip is key:</b> Longer whipping creates a lighter loaf.</li>
+                        <li><b>Folding technique:</b> Fold, don’t stir, to preserve air bubbles.</li>
+                        <li><b>Toaster Oven:</b> Rotate pan halfway if your oven heats unevenly.</li>
+                        <li><b>Batter texture:</b> Should be glossy, thick, but still pourable.</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <div class="recipe-card">
-            <img src="loaf_cake.jpg" alt="Choco Pound Cake">
-            <div class="recipe-content">
-                <h2>Ultimate Fudgy Brownies</h2>
-                <h3>Ingredients:</h3>
-                <ul>
-                    <li>1 cup (2 sticks) unsalted butter, melted</li>
-                    <li>2 cups granulated sugar</li>
-                    <li>4 large eggs</li>
-                    <li>1 1/4 cups all-purpose flour</li>
-                    <li>3/4 cup unsweetened cocoa powder</li>
-                    <li>1/2 teaspoon salt</li>
-                    <li>1 cup chocolate chunks</li>
-                </ul>
-                <h3>Instructions:</h3>
-                <ol>
-                    <li>Preheat oven to 350°F (175°C).</li>
-                    <li>Combine melted butter and sugar. Whisk in eggs.</li>
-                    <li>Sift in flour, cocoa powder, and salt. Mix until just combined.</li>
-                    <li>Fold in chocolate chunks.</li>
-                    <li>Pour into a greased 9x13 inch pan.</li>
-                    <li>Bake for 25-30 minutes. Let cool completely before cutting.</li>
-                </ol>
-            </div>
-        </div>
 
         </div>
 
