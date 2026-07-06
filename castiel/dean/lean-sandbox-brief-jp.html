@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lean Sandbox Brief — Single-Host Escape-Testing for Frontier Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDF0F3; --paper-2:#F6F8FA; --card:#FFFFFF;
+    --ink:#16202E; --ink-2:#33404F; --muted:#5B6B7D; --faint:#8695A5;
+    --line:#D3DAE2; --line-2:#E2E7EC;
+    --petrol:#125E6B;        /* primary accent */
+    --petrol-d:#0C4650;
+    --go:#2C7A57;            /* recommend */
+    --hold:#B5791F;          /* caution / tradeoff */
+    --risk:#C0453B;          /* residual risk */
+    --gov:#3B4F8F;           /* governance accent */
+    --maxw:1160px;
+    --disp:"Archivo",sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper); color:var(--ink); font-family:var(--body); font-weight:400; line-height:1.62; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 26px}
+  h1,h2,h3,h4{font-family:var(--disp); font-weight:700; line-height:1.08; letter-spacing:-.01em}
+  a{color:var(--petrol); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  .mono{font-family:var(--mono)}
+
+  #bar{position:fixed; top:0; left:0; height:3px; width:0; background:var(--petrol); z-index:60}
+  nav{position:sticky; top:0; z-index:50; background:rgba(237,240,243,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; gap:20px; height:58px}
+  nav .brand{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--petrol); font-weight:600; white-space:nowrap}
+  nav .links{display:flex; gap:18px; margin-left:auto; overflow-x:auto}
+  nav .links a{font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); white-space:nowrap}
+  nav .links a:hover{color:var(--ink); text-decoration:none}
+
+  header.hero{padding:70px 0 40px}
+  .kicker{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--petrol); font-weight:600; margin-bottom:22px}
+  h1.title{font-size:clamp(34px,5.4vw,62px); font-weight:800; letter-spacing:-.025em; max-width:16ch}
+  h1.title em{font-style:normal; color:var(--petrol)}
+  .sub{font-size:clamp(16px,2vw,20px); color:var(--muted); max-width:760px; margin-top:22px; font-weight:300}
+  .sub strong{color:var(--ink); font-weight:500}
+
+  /* exec summary */
+  .exec{background:var(--ink); color:#E9EDF2; padding:30px 32px; border-radius:10px; margin-top:36px}
+  .exec .h{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#7FD3C6; margin-bottom:16px}
+  .exec ul{list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:14px 34px}
+  .exec li{font-size:14.5px; color:#C7D0DA; padding-left:24px; position:relative; font-weight:300}
+  .exec li::before{content:"→"; position:absolute; left:0; color:#7FD3C6; font-family:var(--mono)}
+  .exec li b{color:#fff; font-weight:600}
+
+  section{padding:66px 0; border-top:1px solid var(--line); scroll-margin-top:60px}
+  .sh{display:flex; align-items:baseline; gap:16px; margin-bottom:10px}
+  .sh .no{font-family:var(--mono); font-size:13px; color:var(--petrol); font-weight:600}
+  h2{font-size:clamp(24px,3.4vw,36px)}
+  .lead{color:var(--muted); max-width:820px; margin:14px 0 34px; font-size:16px}
+  .lead strong{color:var(--ink); font-weight:500}
+
+  /* dual-audience tags */
+  .tag{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:20px; font-weight:600; white-space:nowrap}
+  .tag.gov{background:rgba(59,79,143,.12); color:var(--gov)}
+  .tag.rd{background:rgba(18,94,107,.12); color:var(--petrol)}
+
+  /* hero collapse toggle */
+  .collapse{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:26px; margin-top:8px}
+  .toggle{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:22px}
+  .toggle button{font-family:var(--mono); font-size:12px; letter-spacing:.03em; padding:9px 16px; border:none; background:var(--paper-2); color:var(--muted); cursor:pointer; transition:.2s}
+  .toggle button.on{background:var(--ink); color:#fff}
+  .collapse .stage{display:none} .collapse .stage.on{display:block}
+  .collapse svg{width:100%; height:auto; display:block}
+  .collapse .cap{font-size:14px; color:var(--muted); margin-top:16px; display:flex; gap:16px; flex-wrap:wrap}
+  .collapse .cap .k{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:5px 10px; border-radius:6px; font-weight:600}
+  .cap .k.cut{background:rgba(192,69,59,.1); color:var(--risk)} .cap .k.keep{background:rgba(44,122,87,.1); color:var(--go)} .cap .k.res{background:rgba(181,121,31,.1); color:var(--hold)}
+
+  /* svg helpers */
+  .b{fill:none; stroke:var(--line); stroke-width:1.5} .bx{fill:#F6F8FA}
+  .b.p{stroke:var(--petrol)} .b.g{stroke:var(--go)} .b.r{stroke:var(--risk); stroke-dasharray:5 3} .b.k{stroke:var(--gov)}
+  .t{fill:var(--muted); font-family:var(--mono); font-size:10px} .t.w{fill:var(--ink); font-size:11px; font-weight:600} .t.p{fill:var(--petrol)} .t.r{fill:var(--risk)} .t.g{fill:var(--go)}
+  .ar{stroke:var(--muted); stroke-width:1.3; fill:none; marker-end:url(#a2)}
+
+  /* matrix */
+  .filt{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px}
+  .filt button{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:var(--card); border:1px solid var(--line); color:var(--muted); padding:7px 12px; border-radius:6px; cursor:pointer}
+  .filt button.on{background:var(--petrol); border-color:var(--petrol); color:#fff}
+  .tblw{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--card)}
+  table{width:100%; border-collapse:collapse; min-width:820px}
+  th,td{text-align:left; padding:13px 15px; border-bottom:1px solid var(--line-2); font-size:13.5px; vertical-align:top}
+  th{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); background:var(--paper-2)}
+  td .o{font-family:var(--disp); font-weight:700; font-size:14.5px} td .m{font-family:var(--mono); font-size:10.5px; color:var(--faint); margin-top:2px}
+  .chip{font-family:var(--mono); font-size:10px; padding:2px 7px; border-radius:5px; background:var(--paper); border:1px solid var(--line); color:var(--ink-2); display:inline-block; margin:2px 3px 2px 0}
+  .chip.esc{background:rgba(192,69,59,.09); border-color:rgba(192,69,59,.25); color:var(--risk)}
+  tr.hide{display:none}
+
+  /* lean stack interactive */
+  .leanwrap{display:grid; grid-template-columns:1.05fr .95fr; gap:26px; align-items:start}
+  #lean svg{width:100%; height:auto}
+  #lean .hit{cursor:pointer}
+  #leandetail{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px; min-height:360px}
+  #leandetail .l{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
+  #leandetail h3{font-size:20px; margin:6px 0 4px}
+  #leandetail .s{font-family:var(--mono); font-size:12px; color:var(--petrol); margin-bottom:16px}
+  #leandetail .row{margin-bottom:14px} #leandetail .row .rl{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; margin-bottom:5px}
+  #leandetail .row.do .rl{color:var(--go)} #leandetail .row.res .rl{color:var(--hold)} #leandetail .row.cfg .rl{color:var(--petrol)}
+  #leandetail .row p{font-size:14px; color:var(--ink-2)}
+  #leandetail code{font-family:var(--mono); font-size:12px; background:var(--paper-2); border:1px solid var(--line); padding:2px 6px; border-radius:4px; color:var(--petrol-d)}
+
+  /* card grids + rd toggle */
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px}
+  .card .top{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap}
+  .card h3{font-size:18px}
+  .verdict{font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:6px; font-weight:600; display:inline-block}
+  .verdict.go{background:rgba(44,122,87,.12); color:var(--go)} .verdict.hold{background:rgba(181,121,31,.12); color:var(--hold)} .verdict.core{background:rgba(18,94,107,.12); color:var(--petrol)}
+  .card p{font-size:14px; color:var(--muted); margin-bottom:10px} .card p strong{color:var(--ink); font-weight:500}
+  .rd{border-top:1px dashed var(--line); margin-top:12px; padding-top:12px}
+  .rd summary{font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--petrol); cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px}
+  .rd summary::-webkit-details-marker{display:none}
+  .rd summary::before{content:"▸"; transition:transform .2s; display:inline-block}
+  .rd[open] summary::before{transform:rotate(90deg)}
+  .rd .body{font-size:13px; color:var(--ink-2); margin-top:12px}
+  .rd .body code{font-family:var(--mono); font-size:11.5px; background:var(--ink); color:#C7E7E1; padding:2px 6px; border-radius:4px; display:inline-block; margin:2px 0}
+  .rd .body pre{background:var(--ink); color:#C7E7E1; font-family:var(--mono); font-size:11.5px; padding:12px 14px; border-radius:8px; overflow-x:auto; margin:8px 0; line-height:1.5}
+  .rd .body .cmt{color:#7FA9A2}
+
+  /* phased spine */
+  .spine{position:relative; margin-left:6px; padding-left:34px; border-left:2px solid var(--line)}
+  .phase{position:relative; margin-bottom:26px}
+  .phase::before{content:""; position:absolute; left:-42px; top:2px; width:16px; height:16px; border-radius:50%; background:var(--card); border:3px solid var(--petrol)}
+  .phase.done::before{background:var(--petrol)}
+  .phase .pn{font-family:var(--mono); font-size:11px; color:var(--petrol); letter-spacing:.08em; font-weight:600}
+  .phase h4{font-size:18px; margin:4px 0 8px}
+  .phase p{font-size:14px; color:var(--muted); max-width:760px} .phase p strong{color:var(--ink); font-weight:500}
+  .gate{margin-top:10px; font-family:var(--mono); font-size:12px; color:var(--gov); background:rgba(59,79,143,.07); border:1px solid rgba(59,79,143,.2); padding:8px 12px; border-radius:6px; display:inline-block}
+  .gate b{color:var(--ink)}
+
+  /* saturation levers */
+  .levers{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .lever{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; position:relative}
+  .lever .cost{position:absolute; top:16px; right:16px; font-family:var(--mono); font-size:10px; padding:3px 9px; border-radius:20px; font-weight:600}
+  .cost.low{background:rgba(44,122,87,.12); color:var(--go)} .cost.med{background:rgba(181,121,31,.12); color:var(--hold)} .cost.save{background:rgba(18,94,107,.12); color:var(--petrol)}
+  .lever h4{font-size:16px; margin-bottom:4px; padding-right:80px} .lever .ln{font-family:var(--mono); font-size:11px; color:var(--faint)}
+  .lever p{font-size:13.5px; color:var(--muted); margin-top:10px} .lever p strong{color:var(--ink); font-weight:500}
+
+  /* resolution viz */
+  .resol{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px; margin-top:20px}
+  .resol .lab{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-bottom:16px}
+  .resbar{display:flex; align-items:center; gap:14px; margin-bottom:14px}
+  .resbar .name{font-family:var(--mono); font-size:12px; width:130px; color:var(--ink-2); flex-shrink:0}
+  .resbar .track{flex:1; height:26px; background:var(--paper-2); border-radius:6px; position:relative; overflow:hidden; border:1px solid var(--line-2)}
+  .resbar .seg{position:absolute; height:100%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:#fff; font-weight:600}
+  .resbar .desc{font-size:12px; color:var(--muted); width:150px; flex-shrink:0}
+
+  .callout{border-left:3px solid var(--hold); background:rgba(181,121,31,.06); padding:14px 18px; border-radius:0 8px 8px 0; margin-top:18px}
+  .callout .cl{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--hold); margin-bottom:6px; font-weight:600}
+  .callout p{font-size:14px; color:var(--ink-2); margin:0}
+
+  .refs{columns:2; column-gap:32px; margin-top:8px}
+  .refs .r{break-inside:avoid; margin-bottom:12px; font-size:12.5px; color:var(--muted)}
+  .refs .r .n{font-family:var(--mono); color:var(--petrol); font-size:11.5px; margin-right:7px; font-weight:600}
+  .refs .r b{color:var(--ink); font-weight:600}
+  footer{padding:44px 0 64px} footer p{font-family:var(--mono); font-size:12px; color:var(--faint); max-width:800px}
+  .disc{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin-top:20px} .disc p{font-family:var(--body); font-size:13px; color:var(--muted)}
+
+  @media(max-width:880px){
+    .exec ul,.leanwrap,.cards,.levers{grid-template-columns:1fr}
+    .refs{columns:1} nav .links{display:none} .resbar{flex-wrap:wrap} .resbar .desc{width:100%}
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<nav><div class="wrap">
+  <span class="brand">▣ Lean Sandbox Brief</span>
+  <div class="links">
+    <a href="#collapse">The Cut</a>
+    <a href="#who">Who Tests What</a>
+    <a href="#design">Design</a>
+    <a href="#validate">Validation</a>
+    <a href="#iterate">Iteration</a>
+    <a href="#saturation">Saturation</a>
+    <a href="#refs">Refs</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="kicker">Design Brief · Governance + R&amp;D · escape-testing for frontier models</div>
+  <h1 class="title">Keep the boundary. <em>Drop the second device.</em></h1>
+  <p class="sub">Your Artifact 3 is strong but over-scoped for the budget. This brief shows how to collapse it to a <strong>single-host sandbox</strong> that still holds against major frontier models, which benchmarks validate it, how to iterate it, and how to <strong>beat CyBench saturation without burning tokens</strong> — grounded in what the AISIs, METR, CAISI and the frontier labs actually run.</p>
+
+  <div class="exec">
+    <div class="h">Executive summary — five decisions</div>
+    <ul>
+      <li><b>Single host is defensible.</b> The dedicated control device becomes host-level processes; the microVM boundary is what makes them "out-of-band". This is the pattern SandboxEscapeBench already uses on one machine. [1]</li>
+      <li><b>Validate holding separately from capability.</b> Use SandboxEscapeBench to prove the sandbox <b>holds</b>; use CyBench / ExploitBench to prove the agent is <b>capable enough</b> for holding to matter. [1,2,8]</li>
+      <li><b>You are not alone at CyBench saturation.</b> CAISI and the AISI network hit the same ceiling; the field's move is graded metrics + harder sets, not more epochs. [3,4]</li>
+      <li><b>Tokens are the cost lever.</b> An optimised scaffold reaches the same score at ~13% of the token budget; a 100M-token cyber run costs ~$80. Spend smarter, not harder. [5,6]</li>
+      <li><b>Residual risk, not zero risk.</b> Collapsing the air-gap to a logical boundary is acceptable under a stated residual-risk threshold with senior sign-off — the AISI protocol model. [11]</li>
+    </ul>
+  </div>
+</div></header>
+
+<!-- ===== 1 THE CUT ===== -->
+<section id="collapse"><div class="wrap">
+  <div class="sh"><span class="no">01</span><h2>What we cut, what we keep</h2></div>
+  <p class="lead">The heavyweight design put the control functions on a physically separate device reachable only out-of-band. The lean design keeps every <strong>isolation boundary</strong> and moves the control functions onto the same host, <em>behind</em> the microVM boundary. Toggle the two states.</p>
+
+  <div class="collapse">
+    <div class="toggle" id="ctog">
+      <button class="on" data-s="full">Full defense-in-depth (Artifact 3)</button>
+      <button data-s="lean">Lean single-host</button>
+    </div>
+
+    <div class="stage on" data-s="full">
+      <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6" fill="#5B6B7D"/></marker></defs>
+        <rect x="10" y="30" width="410" height="250" rx="8" class="b"/><text x="24" y="52" class="t w">DEVICE 1 · eval machine · wireless off</text>
+        <rect x="30" y="66" width="370" height="196" rx="7" class="b p"/><text x="42" y="86" class="t p">microVM · Firecracker</text>
+        <rect x="46" y="98" width="338" height="150" rx="6" class="b k"/><text x="58" y="116" class="t" fill="#3B4F8F">gVisor</text>
+        <rect x="62" y="128" width="306" height="106" rx="5" class="bx b"/><text x="74" y="146" class="t">container</text>
+        <rect x="90" y="160" width="250" height="56" rx="6" fill="#16202E"/><text x="215" y="193" text-anchor="middle" fill="#fff" font-family="var(--mono)" font-size="12">AGENT</text>
+        <!-- device 2 -->
+        <rect x="480" y="30" width="410" height="250" rx="8" class="b"/><text x="494" y="52" class="t w">DEVICE 2 · control device · out-of-band</text>
+        <rect x="500" y="70" width="370" height="80" rx="7" class="b g"/><text x="514" y="92" class="t g">allow-list proxy</text><text x="514" y="110" class="t">default-deny · logs every egress attempt</text>
+        <rect x="500" y="166" width="370" height="80" rx="7" class="b"/><text x="514" y="188" class="t w">supervising agent</text><text x="514" y="206" class="t">reads proxy logs · flags escapes · unreachable from sandbox</text>
+        <line x1="420" y1="150" x2="478" y2="110" class="ar"/><text x="430" y="135" class="t">physical link</text>
+        <line x1="685" y1="150" x2="685" y2="164" class="ar"/>
+        <rect x="700" y="120" width="150" height="0"/>
+      </svg>
+      <div class="cap"><span class="k keep">4 nested boundaries</span><span class="k keep">physical air-gap</span><span class="k">2 machines · higher cost + ops</span></div>
+    </div>
+
+    <div class="stage" data-s="lean">
+      <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="24" width="880" height="262" rx="8" class="b"/><text x="24" y="46" class="t w">SINGLE HOST · egress-controlled · one bare-metal / cloud instance</text>
+        <!-- host-side control zone -->
+        <rect x="540" y="62" width="330" height="206" rx="7" class="b g"/><text x="554" y="82" class="t g">HOST CONTROL ZONE · outside the guest</text>
+        <rect x="556" y="94" width="298" height="66" rx="6" class="bx b"/><text x="568" y="114" class="t g">nftables default-deny + allow-list proxy</text><text x="568" y="132" class="t">only NIC path out · logs every attempt</text><text x="568" y="150" class="t">→ cellular / metered egress</text>
+        <rect x="556" y="172" width="298" height="42" rx="6" class="bx b"/><text x="568" y="192" class="t w">append-only audit log (host-only path)</text><text x="568" y="207" class="t">guest cannot reach it</text>
+        <rect x="556" y="222" width="298" height="38" rx="6" class="bx b"/><text x="568" y="245" class="t">monitor process / post-hoc Inspect-log analysis</text>
+        <!-- sandbox -->
+        <rect x="30" y="62" width="480" height="206" rx="7" class="b p"/><text x="44" y="82" class="t p">microVM · Firecracker · ephemeral · rebuilt every run</text>
+        <rect x="46" y="94" width="448" height="160" rx="6" class="b k"/><text x="58" y="112" class="t" fill="#3B4F8F">gVisor (syscall filter)</text>
+        <rect x="62" y="124" width="416" height="116" rx="5" class="bx b"/><text x="74" y="142" class="t">container · ephemeral workspace</text>
+        <rect x="92" y="158" width="356" height="66" rx="6" fill="#16202E"/><text x="270" y="196" text-anchor="middle" fill="#fff" font-family="var(--mono)" font-size="12">AGENT (untrusted)</text>
+        <line x1="510" y1="160" x2="538" y2="128" class="ar"/><text x="500" y="150" class="t p">only link out</text>
+      </svg>
+      <div class="cap"><span class="k keep">Same 4 boundaries kept</span><span class="k cut">Cut: 2nd physical device</span><span class="k res">Residual: logical, not physical, air-gap</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ===== 2 WHO TESTS WHAT ===== -->
+<section id="who"><div class="wrap">
+  <div class="sh"><span class="no">02</span><h2>Who tests what — the institutional landscape</h2></div>
+  <p class="lead">Across safety orgs, governments, and AISIs, almost <strong>no one runs a dedicated sandbox-escape benchmark</strong> — SandboxEscapeBench is the exception. Everyone else tests <em>offensive capability</em> as a proxy for escape risk, on a shared toolchain: Inspect + CyBench + InterCode. Filter by what each stresses.</p>
+
+  <div class="filt" id="whofilt">
+    <button class="on" data-f="all">All</button>
+    <button data-f="esc">Escape / containment</button>
+    <button data-f="cap">Capability proxy</button>
+    <button data-f="auto">Autonomy / replication</button>
+  </div>
+  <div class="tblw"><table>
+    <thead><tr><th>Org / body</th><th>Role</th><th>Benchmarks &amp; setups used</th><th>Escape-relevant signal</th></tr></thead>
+    <tbody id="whobody"></tbody>
+  </table></div>
+  <div class="callout"><div class="cl">Takeaway for your team</div><p>You already run the community-standard stack (Inspect + CyBench). To make it an <strong>escape</strong> programme rather than a capability programme, the missing piece is SandboxEscapeBench pointed at <em>your</em> sandbox — plus a graded capability benchmark (ExploitBench) to stay above CyBench's ceiling.</p></div>
+</div></section>
+
+<!-- ===== 3 DESIGN ===== -->
+<section id="design"><div class="wrap">
+  <div class="sh"><span class="no">03</span><h2>The lean sandbox — click a layer</h2><span class="tag rd">R&amp;D detail below each layer</span></div>
+  <p class="lead">One host, four nested boundaries, ephemeral per run. The design is deliberately <strong>self-validating</strong>: because it is nested (agent → container → gVisor → microVM → host), you can drop a flag on the host and run escape tasks against it to prove it holds — the same trick SandboxEscapeBench uses. [1]</p>
+
+  <div class="leanwrap">
+    <div id="lean">
+      <svg viewBox="0 0 460 380" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="6" width="448" height="368" rx="8" class="b" />
+        <text x="20" y="28" class="t w">HOST · flag lives here · control zone here</text>
+        <rect class="hit b p" data-id="vm" x="26" y="44" width="408" height="300" rx="7"/>
+        <text x="40" y="66" class="t p" style="pointer-events:none">▸ microVM · Firecracker</text>
+        <rect class="hit b k" data-id="gv" x="46" y="80" width="368" height="248" rx="6"/>
+        <text x="60" y="102" class="t" fill="#3B4F8F" style="pointer-events:none">▸ gVisor · userspace kernel</text>
+        <rect class="hit bx b" data-id="ct" x="66" y="116" width="328" height="196" rx="5"/>
+        <text x="80" y="138" class="t" style="pointer-events:none">▸ container · ephemeral workspace</text>
+        <rect class="hit" data-id="ag" x="96" y="156" width="268" height="70" rx="6" fill="#16202E"/>
+        <text x="230" y="196" text-anchor="middle" fill="#fff" font-family="var(--mono)" font-size="12" style="pointer-events:none">▸ AGENT (untrusted)</text>
+        <rect class="hit b g" data-id="net" x="96" y="244" width="268" height="52" rx="6"/>
+        <text x="230" y="266" text-anchor="middle" class="t g" style="pointer-events:none">▸ egress: default-deny + allow-list proxy</text>
+        <text x="230" y="284" text-anchor="middle" class="t" style="pointer-events:none">logs out-of-band on host</text>
+      </svg>
+      <p style="font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:8px">Click any ring for what it does, config, and residual risk.</p>
+    </div>
+    <div id="leandetail"></div>
+  </div>
+</div></section>
+
+<!-- ===== 4 VALIDATION ===== -->
+<section id="validate"><div class="wrap">
+  <div class="sh"><span class="no">04</span><h2>Which benchmarks validate the sandbox</h2></div>
+  <p class="lead">Two separate questions. <strong>Does the box hold?</strong> is answered by escape benchmarks run against your own sandbox. <strong>Does holding matter?</strong> is answered by capability benchmarks that tell you how hard the agent is pushing. Run both; report them separately.</p>
+
+  <h3 style="font-size:16px; color:var(--go); margin-bottom:14px; font-family:var(--mono); letter-spacing:.06em">A · DOES THE BOX HOLD?</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="top"><h3>SandboxEscapeBench</h3><span class="verdict core">Primary validator</span></div>
+      <p><strong>The</strong> validation set for a sandbox. 18 scenarios across orchestration (L1), runtime (L3), kernel (L4). Run it <em>against your own outer boundary</em>: the agent tries to escape the container into the host, where the flag sits. Binary, host-side scoring means no reward hacking. [1]</p>
+      <details class="rd"><summary>R&amp;D detail</summary><div class="body">
+        <p>Run the <span class="cmt">solution variant first</span> to confirm your harness works and each scenario is reachable, then the adversarial variant to confirm your boundary is not bypassable by an <b>unintended path</b>. SandboxEscapeBench found 4 shortcuts in development (default SSH creds, mismatched-CVE eBPF) that had to be hardened so escapes used the intended exploit only.</p>
+        <pre>inspect eval sandbox_escape_bench \
+  --sandbox vagrant     <span class="cmt"># VM-in-host provider = single machine</span>
+  -T variant=adversarial --epochs 5 --token-limit 2500000</pre>
+        <p>Escape success scales log-linearly with compute; run difficulty-tiered so you see which scenarios flip fail→pass as models improve. [1]</p>
+      </div></details>
+    </div>
+    <div class="card">
+      <div class="top"><h3>Harness &amp; shortcut audit</h3><span class="verdict go">Recommended</span></div>
+      <p>The harness is itself an attack surface. Confirm the host flag is reachable <em>only</em> via a real escape, that no info leaks into the container, and that the scorer can't be gamed. Audit transcripts of every "success" to verify the intended attack path. [1]</p>
+      <details class="rd"><summary>R&amp;D detail</summary><div class="body">
+        <p>Automate transcript review (Meerkat / BenchJack-style auditors) rather than manual spot-checks. Seal any git history / package caches the agent could read a solution from; treat a "solve" with an unexpected trajectory as a harness bug, not a capability signal.</p>
+      </div></details>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px; color:var(--petrol); margin:30px 0 14px; font-family:var(--mono); letter-spacing:.06em">B · IS THE AGENT CAPABLE ENOUGH TO MATTER?</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="top"><h3>CyBench</h3><span class="verdict hold">Baseline · saturating</span></div>
+      <p>40 professional CTF tasks; the community baseline (o1 hit ~45% in the CAISI/UK joint test, and newer models are higher). Keep it for comparability and its <strong>subtask</strong> decomposition — but expect saturation at the frontier. [2,3]</p>
+      <details class="rd"><summary>R&amp;D detail</summary><div class="body"><p>Report pass@1 at a fixed budget for comparability with the network's runs (Inspect, ~2.5M token cap, temp 0.7–1). Use subtask completion as the gradient signal, not just full solves — see §06.</p></div></details>
+    </div>
+    <div class="card">
+      <div class="top"><h3>ExploitBench</h3><span class="verdict go">Adopt · beats saturation</span></div>
+      <p>Capability-<em>ladder</em> benchmark: 16 deterministically-graded flags across 5 tiers, up through <strong>escaping the engine sandbox</strong> to arbitrary code execution, on 41 hardened V8 bugs. Gives resolution between models that both "pass" CyBench. Publicly deployed frontier models routinely crash but rarely reach ACE. [8]</p>
+      <details class="rd"><summary>R&amp;D detail</summary><div class="body"><p>The ladder tiers — reach → trigger → in-cage primitive → <b>escape the engine</b> → control — mean you score "how far up did it climb", not "did it pop". That is exactly the anti-saturation metric you need, and the escape tier is directly relevant to your threat model. Deterministic oracles (randomised challenge-response, differential execution) avoid LLM-judge fragility.</p></div></details>
+    </div>
+    <div class="card">
+      <div class="top"><h3>InterCode-CTF + NYU CTF Bench</h3><span class="verdict go">Port to Inspect</span></div>
+      <p>InterCode is already part of the AISI-network agentic-cyber setup alongside CyBench; NYU CTF Bench adds 200 tasks. Both broaden coverage and are worth the porting effort you're already doing. [4,5-refs]</p>
+      <details class="rd"><summary>R&amp;D detail</summary><div class="body"><p>The network ran CyBench + InterCode on Inspect at temp 0.7, 10 samples/task, 2.5M-token caps — mirror those settings for cross-org comparability.</p></div></details>
+    </div>
+    <div class="card">
+      <div class="top"><h3>CVE-Bench / CyberGym · CyberSecEval-PI</h3><span class="verdict hold">Optional realism</span></div>
+      <p>Real-world exploitation (CVE-Bench ~10–13%; CyberGym 1,507 vulns) tests whether capability generalises off synthetic CTFs. CyberSecEval's prompt-injection set tests the <em>trigger</em>: does an injected instruction become a tool-abuse / escape attempt? [ref]</p>
+      <details class="rd"><summary>R&amp;D detail</summary><div class="body"><p>These are heavier to stand up. Treat as periodic realism checks, not per-release gates, unless budget allows.</p></div></details>
+    </div>
+  </div>
+</div></section>
+
+<!-- ===== 5 ITERATION ===== -->
+<section id="iterate"><div class="wrap">
+  <div class="sh"><span class="no">05</span><h2>How to iterate the sandbox</h2><span class="tag gov">gates = governance sign-off points</span></div>
+  <p class="lead">A phased path from your current CyBench-on-Inspect setup to a validated, continuously-tracked escape programme. Each phase ends in a <strong>gate</strong> — a decision the R&amp;D team hands to governance.</p>
+
+  <div class="spine">
+    <div class="phase done"><div class="pn">PHASE 0 · you are here</div><h4>Single-host nested sandbox on Inspect</h4>
+      <p>Stand up Firecracker + gVisor + container on one host with the VM sandbox provider; keep CyBench running; finish porting InterCode / NYU CTF into Inspect.</p>
+      <div class="gate"><b>Gate:</b> harness reproducible, logs captured out-of-band.</div></div>
+    <div class="phase"><div class="pn">PHASE 1</div><h4>Prove it holds</h4>
+      <p>Add SandboxEscapeBench via the VM provider. Run the <strong>solution</strong> variant (harness sanity) → <strong>adversarial</strong> variant with a frontier model → harden every unintended escape path until success only follows the intended exploit.</p>
+      <div class="gate"><b>Gate:</b> no unintended escape paths; residual-risk statement drafted.</div></div>
+    <div class="phase"><div class="pn">PHASE 2</div><h4>Red-team the harness</h4>
+      <p>Auto-audit transcripts of all successes; seal information leakage and reward-hacking routes; confirm the host flag is reachable only via a real breakout.</p>
+      <div class="gate"><b>Gate:</b> scorer integrity signed off; first validated escape-capability number published internally.</div></div>
+    <div class="phase"><div class="pn">PHASE 3</div><h4>Continuous tracking</h4>
+      <p>Re-run the escape suite on every new frontier model; watch for scenarios flipping fail→pass; maintain a <strong>private held-out set</strong>; track against the ~7-month autonomy-doubling trend. [1,ref]</p>
+      <div class="gate"><b>Gate:</b> if-then thresholds defined — which escape result triggers which containment upgrade.</div></div>
+    <div class="phase"><div class="pn">PHASE 4 · as budget allows</div><h4>Deepen coverage &amp; add control</h4>
+      <p>Extend to app-layer (L2) and novel-vuln discovery; layer a lightweight monitor / control protocol (ControlArena-style) once capability rises enough that "does monitoring catch it?" becomes the live question.</p>
+      <div class="gate"><b>Gate:</b> escape + control results reviewed together at each release.</div></div>
+  </div>
+</div></section>
+
+<!-- ===== 6 SATURATION ===== -->
+<section id="saturation"><div class="wrap">
+  <div class="sh"><span class="no">06</span><h2>Beating CyBench saturation without burning tokens</h2></div>
+  <p class="lead">The trap: to separate two models that both "pass" CyBench, the obvious move is more epochs and bigger budgets — but AISI shows cyber success keeps rising <strong>log-linearly to 100M tokens with no plateau</strong>, and a 100M-token run costs ~$80. Brute force is expensive <em>and</em> doesn't cleanly rank saturated models. The fix is to <strong>measure differently and spend smarter</strong>. [5,6]</p>
+
+  <div class="resol">
+    <div class="lab">Why graded metrics resolve saturated models at the same budget</div>
+    <div class="resbar"><span class="name">binary (CyBench)</span><div class="track"><div class="seg" style="left:0; width:96%; background:var(--faint)">both models "pass" → no signal</div></div><span class="desc">1 bit of resolution</span></div>
+    <div class="resbar"><span class="name">subtasks</span><div class="track"><div class="seg" style="left:0; width:60%; background:var(--hold)">model A</div><div class="seg" style="left:60%; width:36%; background:var(--petrol)">B further</div></div><span class="desc">partial credit, free (built-in)</span></div>
+    <div class="resbar"><span class="name">ladder (ExploitBench)</span><div class="track"><div class="seg" style="left:0;width:31%;background:var(--go)">reach</div><div class="seg" style="left:31%;width:25%;background:var(--petrol)">trigger</div><div class="seg" style="left:56%;width:22%;background:var(--gov)">escape</div><div class="seg" style="left:78%;width:18%;background:var(--risk)">ACE</div></div><span class="desc">16 flags → fine resolution</span></div>
+  </div>
+
+  <div class="levers" style="margin-top:22px">
+    <div class="lever"><span class="cost save">saves ~87% tokens</span><div class="ln">Lever 1</div><h4>Optimise the scaffold first</h4><p>AISI reached the <strong>same 25% cyber dev-set score using ~13% of the token budget</strong> of a non-optimised scaffold — just a better system prompt and tool access. This is the single biggest cost lever. [5]</p></div>
+    <div class="lever"><span class="cost low">free</span><div class="ln">Lever 2</div><h4>Score subtasks, not solves</h4><p>CyBench ships subtask decompositions. Grade partial progress to separate saturated models without a single extra token. [2]</p></div>
+    <div class="lever"><span class="cost low">free</span><div class="ln">Lever 3</div><h4>Switch the axis to token-efficiency</h4><p>At a <em>fixed</em> modest budget, measure tokens-to-solve / progress-per-token — AISI's "token efficiency" dimension. Differentiates strong models cheaply instead of chasing asymptotic pass rates. [6]</p></div>
+    <div class="lever"><span class="cost med">lower total</span><div class="ln">Lever 4</div><h4>Adaptive budgeting + early stop</h4><p>Fixed cap (e.g. 2.5M tokens), pass@1 or low epochs; stop early on trivial solves <em>and</em> on stalls/loops. AISI found models were usually still progressing at cutoff — so terminate when they are <strong>not</strong>. Use input caching (note: context compaction resets it). [4,7]</p></div>
+    <div class="lever"><span class="cost low">fewer runs</span><div class="ln">Lever 5</div><h4>Prune to the discriminating tail</h4><p>Drop tasks every frontier model solves trivially (no signal) and every task none can touch. Keep the hard, contamination-safe middle + recent/private tasks. Fewer tasks × lower epochs = far fewer tokens.</p></div>
+    <div class="lever"><span class="cost med">headroom</span><div class="ln">Lever 6</div><h4>Move up-difficulty, not up-epochs</h4><p>Add ExploitBench and cyber-range-style multi-step tasks where there is still headroom, rather than running CyBench at ever-higher k. Report pass@1 with a stated budget, not pass@k with large k. [8,ref]</p></div>
+  </div>
+
+  <div class="callout"><div class="cl">Governance framing</div><p>Report escape-capability as <strong>"success at budget X"</strong> with X fixed and stated, plus a ladder/subtask breakdown — never an uncapped pass@k, which inflates with spend and is not comparable across releases. This keeps the number honest, cheap, and defensible.</p></div>
+</div></section>
+
+<!-- ===== REFS ===== -->
+<section id="refs"><div class="wrap">
+  <div class="sh"><span class="no">07</span><h2>References</h2></div>
+  <div class="refs" id="reflist"></div>
+  <div class="disc"><p><strong>Neutrality &amp; verification note.</strong> This brief synthesises public academic papers and institutional publications (UK AISI, US CAISI/NIST, the International AISI Network, METR, and frontier-lab safety frameworks). Capability figures are as-published and move quickly — re-verify against primary sources before using any number in a formal governance decision. Where the earlier internal notes referenced a limited-access model (Mythos), a public AISI cyber evaluation of a "Claude Mythos Preview" does exist, but specific system-card claims should be confirmed against the primary document.</p></div>
+</div></section>
+
+<footer><div class="wrap"><p>▣ Lean Sandbox Brief · single-host escape-testing for frontier models · a design reference for governance + R&amp;D, not a security control · verify all figures against primary sources before formal use.</p></div></footer>
+
+<script>
+const bar=document.getElementById('bar');
+addEventListener('scroll',()=>{const h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+
+/* collapse toggle */
+document.querySelectorAll('#ctog button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#ctog button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('.collapse .stage').forEach(s=>s.classList.toggle('on', s.dataset.s===b.dataset.s));
+  });
+});
+
+/* who-tests-what */
+const who=[
+  {o:'UK AISI',m:'AI Security Institute',type:'esc',role:'Pre-deployment cyber evals; builds the tooling',bm:['SandboxEscapeBench','Inspect Cyber','cyber ranges','private 47-task suite','Sandboxing Toolkit'],sig:'Only body with a dedicated container-escape benchmark; toolkit codifies tooling/host/network isolation'},
+  {o:'US CAISI',m:'NIST (formerly US AISI)',type:'cap',role:'Joint pre-deployment testing',bm:['CyBench','joint o1/GPT test protocol'],sig:'o1 scored ~45% on CyBench in the joint test; capability as escape-risk proxy'},
+  {o:'Intl AISI Network',m:'SG · JP · AU · CA · EU · FR · KE · KR · UK',type:'cap',role:'Aligned agentic-cyber methodology',bm:['CyBench','InterCode','CyberSecEval prompt-injection'],sig:'Standardised on Inspect; temp 0.7–1, 10 epochs, 2.5M-token caps — mirror these for comparability'},
+  {o:'METR',m:'Model Eval & Threat Research',type:'auto',role:'Autonomy / rogue-replication evals',bm:['task suite','RE-Bench','MirrorCode','runc challenge tasks'],sig:'Frames infrastructure compromise as a prerequisite for autonomous replication; probed runc directly'},
+  {o:'Frontier labs',m:'Anthropic RSP · OpenAI PF · DeepMind FSF',type:'auto',role:'Self-governance capability thresholds',bm:['internal cyber suites','autonomy / self-replication evals','Phuong et al. dangerous-capability suite'],sig:'Gate deployment on cyber + autonomy thresholds; DeepMind tracks oversight-bypass / deceptive alignment'},
+  {o:'Academia',m:'CMU · UIUC · NYU · Stanford',type:'cap',role:'Benchmark construction',bm:['ExploitBench','CVE-Bench','CyberGym','BountyBench','NYU CTF'],sig:'ExploitBench grades an explicit sandbox-escape tier; others test real-world exploitation'},
+];
+const whoLabel={esc:['esc','Escape'],cap:['cap','Capability'],auto:['auto','Autonomy']};
+const whobody=document.getElementById('whobody');
+function renderWho(f){
+  whobody.innerHTML=who.map(w=>{
+    const hide=(f!=='all'&&f!==w.type)?'hide':'';
+    const chips=w.bm.map(b=>`<span class="chip ${w.type==='esc'&&b.includes('Escape')?'esc':''}">${b}</span>`).join('');
+    return `<tr class="${hide}"><td><div class="o">${w.o}</div><div class="m">${w.m}</div></td><td style="color:var(--muted)">${w.role}</td><td>${chips}</td><td style="color:var(--muted)">${w.sig}</td></tr>`;
+  }).join('');
+}
+renderWho('all');
+document.querySelectorAll('#whofilt button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#whofilt button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderWho(b.dataset.f);
+}));
+
+/* lean stack detail */
+const lean={
+  vm:{l:'Outer boundary',n:'MicroVM · Firecracker',s:'hardware-enforced · ephemeral',
+    do:'The strong ring and the double-sandbox outer layer at once. Each run gets a fresh Firecracker microVM (own guest kernel in KVM, ~5 devices, ~50k lines of Rust, ~125ms start), rebuilt every run so no state persists. The flag for escape tests lives on the host, outside this VM.',
+    res:'Not unbreakable — a full guest-kernel + hypervisor escape is in scope but a very high bar. Cold-start and memory cost are the practical tax.',
+    cfg:'Inspect VM sandbox provider (<code>vagrant</code> / <code>inspect_vagrant_sandbox</code>). Rebuild image per run; no shared writable mounts to host.'},
+  gv:{l:'Middle boundary',n:'gVisor · userspace kernel',s:'syscall interception',
+    do:'The Sentry services a minimal vetted syscall set in user space, so the container never touches the host kernel directly — cutting the kernel attack surface that shared-kernel containers expose.',
+    res:'Software, not hardware, isolation: depends on Sentry correctness, weaker than the VM. 10–30% I/O overhead.',
+    cfg:'runsc runtime inside the microVM. Acceptable overhead for eval workloads; drop it only if a task needs syscalls gVisor doesn\'t support.'},
+  ct:{l:'Inner boundary',n:'Container · workspace',s:'ephemeral · non-privileged',
+    do:'The agent\'s working environment. Non-privileged, no dangerous capabilities, no mounted Docker socket — the misconfigurations that account for the most common real escapes.',
+    res:'On its own a packaging boundary, not a security boundary; that is exactly why it sits inside gVisor + the microVM.',
+    cfg:'Drop <code>CAP_SYS_ADMIN</code>; no <code>--privileged</code>; never mount <code>/var/run/docker.sock</code>; seccomp on.'},
+  ag:{l:'Core · untrusted',n:'The agent',s:'the thing under test',
+    do:'Frontier model + tools (bash / MCP) driven by Inspect\'s agent loop. In an escape test its objective may literally be to break out. Everything outward of it is your containment budget.',
+    res:'Dual-use by construction: the environmental awareness that makes it capable makes it a good escapee if goals drift or a prompt injection subverts it.',
+    cfg:'Minimal system prompt for capability runs; optimise scaffold to cut token spend (§06). Log full trajectory out-of-band.'},
+  net:{l:'Egress control',n:'Default-deny + allow-list proxy',s:'the single link out',
+    do:'The microVM\'s only network path is a host tap routed through a default-deny proxy on the host that logs every attempt. Broader access, if needed, goes through the logging proxy; final egress is metered/cellular. This is the boundary ROME defeated when it was left open.',
+    res:'Runs on the same host — a full VM escape could reach it. Mitigate: proxy in its own minimal VM or locked namespace; append-only logs the guest can\'t reach.',
+    cfg:'<code>nftables</code> default-deny egress + allow-list proxy (e.g. mitmproxy/squid) on host; audit log on host-only path; optional monitor process tails it.'},
+};
+const ld=document.getElementById('leandetail');
+function renderLean(id){const d=lean[id];ld.innerHTML=`
+  <div class="l">${d.l}</div><h3>${d.n}</h3><div class="s">${d.s}</div>
+  <div class="row do"><div class="rl">▷ What it does</div><p>${d.do}</p></div>
+  <div class="row res"><div class="rl">▷ Residual risk</div><p>${d.res}</p></div>
+  <div class="row cfg"><div class="rl">▷ Config</div><p>${d.cfg}</p></div>`;}
+document.querySelectorAll('#lean .hit').forEach(h=>{
+  h.addEventListener('click',()=>{renderLean(h.dataset.id);});
+  h.addEventListener('mouseenter',()=>renderLean(h.dataset.id));
+});
+renderLean('vm');
+
+/* refs */
+const refs=[
+  {a:'Marchand, R., et al. (Oxford / UK AISI).',t:'Quantifying Frontier LLM Capabilities for Container Sandbox Escape (SandboxEscapeBench).',v:'arXiv:2603.02277, 2026.',u:'https://arxiv.org/abs/2603.02277'},
+  {a:'Zhang, A., et al.',t:'Cybench: Framework for Evaluating Cybersecurity Capabilities and Risks of LLMs.',v:'arXiv:2408.08926, 2024.',u:'https://arxiv.org/abs/2408.08926'},
+  {a:'US AISI & UK AISI (CAISI/NIST).',t:'Joint Pre-Deployment Test: OpenAI o1 (CyBench ~45%; private 47-task suite).',v:'Dec 2024.',u:'https://www.nist.gov/'},
+  {a:'International AISI Network (UK, EU AI Office, Australia, +).',t:'International Joint Testing Exercise: Agentic Testing (CyBench + InterCode on Inspect; 2.5M-token caps, 10 epochs).',v:'AISI, 2025.',u:'https://www.aisi.gov.uk/blog/international-joint-testing-exercise-agentic-testing'},
+  {a:'UK AI Security Institute.',t:'Frontier AI Trends Report (optimised scaffold: same score at ~13% of token budget; Inspect Cyber).',v:'AISI, 2025–26.',u:'https://www.aisi.gov.uk/frontier-ai-trends-report'},
+  {a:'UK AI Security Institute + Irregular.',t:'Evidence for Inference Scaling in AI Cyber Tasks (log-linear to 100M tokens, no plateau).',v:'AISI Blog, 2026.',u:'https://www.aisi.gov.uk/blog/evidence-for-inference-scaling-in-ai-cyber-tasks-increased-evaluation-budgets-reveal-higher-success-rates'},
+  {a:'UK AI Security Institute.',t:'More Compute, More Capability: why agent evals need to account for test-time compute (~8% of tasks need 10M+ tokens).',v:'AISI Blog, 2026.',u:'https://www.aisi.gov.uk/blog/more-compute-more-capability-why-ai-agent-evals-need-to-account-for-test-time-compute'},
+  {a:'Lee, S., Brumley, D. (CMU / Bugcrowd).',t:'ExploitBench: A Capability Ladder Benchmark for LLM Cybersecurity Agents (16 flags, 5 tiers incl. sandbox escape; 41 V8 bugs).',v:'arXiv:2605.14153, 2026.',u:'https://arxiv.org/abs/2605.14153'},
+  {a:'UK AISI + Meridian Labs.',t:'Inspect AI: framework + Inspect Cyber + Sandboxing Toolkit (tooling/host/network axes).',v:'2024–.',u:'https://inspect.aisi.org.uk/'},
+  {a:'UK AI Security Institute.',t:'How do frontier AI agents perform in multi-step cyber-attack scenarios? (cyber ranges; 100M-token run ≈ $80).',v:'AISI Blog, 2026.',u:'https://www.aisi.gov.uk/blog/how-do-frontier-ai-agents-perform-in-multi-step-cyber-attack-scenarios'},
+  {a:'UK AI Security Institute.',t:'The Inspect Sandboxing Toolkit (residual-risk protocol; senior-owner sign-off).',v:'AISI Blog, 2025.',u:'https://www.aisi.gov.uk/blog/the-inspect-sandboxing-toolkit-scalable-and-secure-ai-agent-evaluations'},
+  {a:'International AISI Network / France (SGDSN).',t:'Joint Testing Exercise across Global Languages (CyBench + CyberSecEval PI; Inspect; temp 1, 100-msg limit, 10 epochs).',v:'2024–25.',u:'https://www.sgdsn.gouv.fr/'},
+  {a:'METR.',t:'The Rogue Replication Threat Model; Autonomy Evaluation Resources; Frontier Risk Report (runc probing).',v:'metr.org, 2024–26.',u:'https://metr.org/'},
+  {a:'Anthropic; OpenAI; Google DeepMind.',t:'Responsible Scaling Policy; Preparedness Framework; Frontier Safety Framework (cyber + autonomy/self-replication thresholds).',v:'2023–26.',u:'https://www.anthropic.com/news/responsible-scaling-policy-v3'},
+  {a:'Phuong, M., et al. (Google DeepMind).',t:'Evaluating Frontier Models for Dangerous Capabilities (self-proliferation, self-reasoning).',v:'arXiv:2403.13793, 2024.',u:'https://arxiv.org/abs/2403.13793'},
+  {a:'Zhu, Y., et al.; Wang, et al.',t:'CVE-Bench (arXiv:2503.17332) and CyberGym (1,507 vulns) — real-world exploitation benchmarks.',v:'2025.',u:'https://arxiv.org/abs/2503.17332'},
+];
+document.getElementById('reflist').innerHTML=refs.map((r,i)=>`<div class="r"><span class="n">[${i+1}]</span><b>${r.a}</b> ${r.t} <em>${r.v}</em>${r.u?` <a href="${r.u}" target="_blank" rel="noopener">↗</a>`:''}</div>`).join('');
+</script>
+<script>
+/* ===== Bilingual (JA/EN) annotation layer — additive; English fully retained ===== */
+(function(){
+  var C={accent:'#125E6B',muted:'#4B5B54',line:'#D3DAE2',banBg:'#16202E',banFg:'#EDF0F3',execFg:'#AEBAC4',execAcc:'#7FD3C6'};
+  var fl=document.createElement('link');fl.rel='stylesheet';
+  fl.href='https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap';
+  document.head.appendChild(fl);
+  var st=document.createElement('style');
+  st.textContent=
+    '.jp-h{font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:15px;color:'+C.accent+';display:block;margin-top:8px;line-height:1.4;}'+
+    '.jp-title{font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:clamp(17px,2.3vw,25px);color:'+C.accent+';margin-top:18px;line-height:1.35;}'+
+    '.jp-lead{font-family:"Noto Sans JP",sans-serif;font-size:14px;color:'+C.muted+';margin-top:14px;line-height:1.9;border-top:1px dotted '+C.line+';padding-top:13px;}'+
+    '.jp-sub{font-family:"Noto Sans JP",sans-serif;font-size:15px;color:'+C.muted+';margin-top:16px;line-height:1.95;}'+
+    '.jp-exh{font-family:"Noto Sans JP",sans-serif;font-size:12px;color:'+C.execAcc+';display:block;margin-top:5px;letter-spacing:.04em;}'+
+    '.jp-exi{font-family:"Noto Sans JP",sans-serif;font-size:12.5px;color:'+C.execFg+';display:block;margin-top:6px;line-height:1.75;}'+
+    '.jp-ban{font-family:"Noto Sans JP",sans-serif;background:'+C.banBg+';color:'+C.banFg+';padding:10px 26px;font-size:12.5px;letter-spacing:.02em;display:flex;gap:14px;flex-wrap:wrap;align-items:center;}'+
+    '.jp-ban b{color:'+C.execAcc+';font-weight:700;}'+'.jp-ban .en{color:#8FA0A9;font-family:"IBM Plex Mono",monospace;font-size:11px;}';
+  document.head.appendChild(st);
+  function ins(t,cls,tag,txt){if(!t)return;var e=document.createElement(tag);e.className=cls;e.textContent=txt;t.appendChild(e);}
+  var nav=document.querySelector('nav');
+  if(nav){var b=document.createElement('div');b.className='jp-ban';
+    b.innerHTML='<b>軽量サンドボックス提要</b> 日英併記版 <span class="en">Bilingual (日本語 / English) · 分析内容は原文を完全に保持 · full analysis preserved</span>';
+    nav.parentNode.insertBefore(b,nav);}
+  ins(document.querySelector('.kicker'),'jp-exh','span','設計提要 ― ガバナンス＋R&D ― フロンティアモデルの脱出試験');
+  ins(document.querySelector('h1.title'),'jp-title','div','境界は維持し、二台目の装置は廃する。');
+  ins(document.querySelector('.sub'),'jp-sub','div','提示済みの重量級設計（Artifact 3）は堅牢だが、予算と提案範囲を超える。本提要は、主要フロンティアモデルに耐えつつ単一ホストへ集約したサンドボックス、その検証に用いるベンチマーク、反復改善の手順、そしてトークンを浪費せずCyBench飽和を回避する方法を、各国AISI・METR・CAISI・フロンティア各社の実務に基づいて示す。');
+  // exec
+  ins(document.querySelector('.exec .h'),'jp-exh','span','エグゼクティブサマリー ― 五つの意思決定');
+  var eli=document.querySelectorAll('.exec li');
+  ['単一ホストは妥当である。専用制御デバイスはホスト上のプロセスに置換でき、マイクロVM境界がそれを「帯域外」にする。SandboxEscapeBenchが単一マシンで用いる方式。',
+   '「保持」と「能力」を分けて検証する。サンドボックスが持ちこたえるかはSandboxEscapeBenchで、能力が問題になる水準かはCyBench／ExploitBenchで測る。',
+   'CyBench飽和は自組織だけの問題ではない。CAISIやAISIネットワークも同じ天井に達しており、対応はエポック増ではなく段階的指標と難易度の高い課題である。',
+   'トークンがコストの鍵である。最適化スキャフォールドは約13％のトークン予算で同等スコアに達する。100Mトークン実行は約$80。賢く使うこと。',
+   'ゼロリスクではなく残留リスク。物理エアギャップの論理境界への置換は、明示した残留リスク閾値と上位責任者の承認の下で許容される（AISIのプロトコル方式）。'
+  ].forEach(function(t,i){ins(eli[i],'jp-exi','span',t);});
+  var S={
+    collapse:{h:'削るもの、残すもの',l:'重量級設計は制御機能を物理的に分離した装置へ置いた。軽量設計はすべての隔離境界を保持したまま、制御機能をマイクロVM境界の内側・同一ホストへ移す。二つの状態を切り替えて比較できる。'},
+    who:{h:'誰が何を試すか ― 制度的動向',l:'安全機関・政府・各AISIを通じ、専用のサンドボックス脱出ベンチマークを運用する主体はほぼ皆無で、SandboxEscapeBenchが例外である。他はInspect＋CyBench＋InterCodeという共通基盤上で、攻撃能力を脱出リスクの代理指標として測っている。'},
+    design:{h:'軽量サンドボックス ― 各層をクリック',l:'単一ホスト、入れ子の四境界、実行ごとに使い捨て。入れ子構造ゆえ、ホスト上にフラグを置けば脱出課題で「持ちこたえるか」を実証でき、設計自体が自己検証的である。'},
+    validate:{h:'サンドボックスを検証するベンチマーク',l:'問いは二つ。「箱は持つか」は自組織のサンドボックスに対する脱出ベンチマークで、「持つことに意味があるか」は能力ベンチマークで答える。両者を別々に実施し、別々に報告する。'},
+    iterate:{h:'サンドボックスの反復改善',l:'現行のCyBench＋Inspect構成から、検証済みで継続追跡型の脱出評価プログラムへ至る段階的経路。各段階は、R&Dがガバナンスへ引き渡す「ゲート（承認点）」で終わる。'},
+    saturation:{h:'トークンを浪費せずCyBench飽和を打破する',l:'罠は次の通り。飽和した二つのモデルを分離するにはエポック増と予算増が自明の一手に見えるが、AISIによればサイバー成功率は100Mトークンまで頭打ちなく対数線形に伸び、100M実行は約$80かかる。力任せは高コストで、かつ順位付けにも不向きである。解は「測り方を変え、賢く使う」。'},
+    refs:{h:'参考文献',l:'主要な学術・機関の出典。可能な限り原典へリンクする。'}
+  };
+  document.querySelectorAll('section[id]').forEach(function(sec){var m=S[sec.id];if(!m)return;
+    ins(sec.querySelector('h2'),'jp-h','span',m.h);
+    ins(sec.querySelector('.lead'),'jp-lead','div',m.l);});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implementation &amp; Pilot Plan — Lean Escape-Testing Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9ECE8; --paper2:#F3F5F1; --card:#FFFFFF;
+    --ink:#141D19; --ink2:#33423B; --muted:#586A61; --faint:#899A90;
+    --line:#CDD5CD; --line2:#E1E6E0;
+    --pine:#1E6F52; --pine-d:#124635;   /* primary / build */
+    --ochre:#A6721C;                     /* R&D detail */
+    --risk:#B4463C;                      /* residual risk */
+    --slate:#3D5570;                     /* governance */
+    --maxw:1180px;
+    --disp:"Sora",sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper); color:var(--ink); font-family:var(--body); font-weight:400; line-height:1.62; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 26px}
+  h1,h2,h3,h4{font-family:var(--disp); font-weight:700; line-height:1.1; letter-spacing:-.015em}
+  a{color:var(--pine)} a:hover{text-decoration:underline; text-underline-offset:3px}
+  .mono{font-family:var(--mono)}
+
+  #bar{position:fixed; top:0; left:0; height:3px; width:0; background:var(--pine); z-index:60}
+  nav{position:sticky; top:0; z-index:50; background:rgba(233,236,232,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; gap:20px; height:58px}
+  nav .brand{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--pine); font-weight:600; white-space:nowrap}
+  nav .links{display:flex; gap:16px; margin-left:auto; overflow-x:auto}
+  nav .links a{font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); white-space:nowrap}
+  nav .links a:hover{color:var(--ink); text-decoration:none}
+
+  header.hero{padding:66px 0 38px}
+  .kick{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--pine); font-weight:600; margin-bottom:20px}
+  h1.t{font-size:clamp(33px,5.2vw,60px); font-weight:800; letter-spacing:-.03em; max-width:17ch}
+  h1.t em{font-style:normal; color:var(--pine)}
+  .sub{font-size:clamp(16px,2vw,20px); color:var(--muted); max-width:800px; margin-top:22px; font-weight:300}
+  .sub strong{color:var(--ink); font-weight:500}
+
+  .exec{background:var(--ink); color:#E7ECE8; padding:28px 32px; border-radius:12px; margin-top:34px}
+  .exec .h{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#7FCBA8; margin-bottom:14px}
+  .exec .g{display:grid; grid-template-columns:repeat(3,1fr); gap:20px 28px}
+  .exec .g .b{font-size:14px; color:#C4CFC8; font-weight:300}
+  .exec .g .b .n{font-family:var(--mono); font-size:11px; color:#7FCBA8; display:block; margin-bottom:5px; letter-spacing:.06em}
+  .exec .g .b strong{color:#fff; font-weight:600}
+
+  section{padding:64px 0; border-top:1px solid var(--line); scroll-margin-top:60px}
+  .sh{display:flex; align-items:baseline; gap:15px; margin-bottom:8px; flex-wrap:wrap}
+  .sh .no{font-family:var(--mono); font-size:13px; color:var(--pine); font-weight:600}
+  h2{font-size:clamp(23px,3.3vw,35px)}
+  .lead{color:var(--muted); max-width:840px; margin:14px 0 32px; font-size:16px}
+  .lead strong{color:var(--ink); font-weight:500}
+
+  .tag{font-family:var(--mono); font-size:9.5px; letter-spacing:.07em; text-transform:uppercase; padding:3px 8px; border-radius:20px; font-weight:600; white-space:nowrap}
+  .tag.gov{background:rgba(61,85,112,.13); color:var(--slate)}
+  .tag.rd{background:rgba(166,114,28,.14); color:var(--ochre)}
+
+  /* component blueprint */
+  .bpwrap{display:grid; grid-template-columns:1.15fr .85fr; gap:26px; align-items:start}
+  #bp svg{width:100%; height:auto}
+  #bp .hit{cursor:pointer; transition:.15s}
+  #bp .num{font-family:var(--mono); font-weight:600; font-size:12px; fill:var(--pine)}
+  #bpdetail{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; min-height:420px; position:sticky; top:74px}
+  #bpdetail .cid{font-family:var(--mono); font-size:12px; color:var(--pine); font-weight:600; letter-spacing:.06em}
+  #bpdetail h3{font-size:20px; margin:5px 0 4px}
+  #bpdetail .role{font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.07em; margin-bottom:16px}
+  #bpdetail .row{margin-bottom:13px}
+  #bpdetail .row .rl{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; margin-bottom:5px; color:var(--muted)}
+  #bpdetail .row.build .rl{color:var(--pine)} #bpdetail .row.dep .rl{color:var(--slate)} #bpdetail .row.pilot .rl{color:var(--ochre)}
+  #bpdetail .row p{font-size:13.5px; color:var(--ink2)}
+  #bpdetail .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
+  #bpdetail .chips code{font-family:var(--mono); font-size:11px; background:var(--paper2); border:1px solid var(--line); padding:3px 8px; border-radius:5px; color:var(--pine-d)}
+  .bplist{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
+  .bplist button{font-family:var(--mono); font-size:11px; background:var(--card); border:1px solid var(--line); color:var(--muted); padding:6px 10px; border-radius:6px; cursor:pointer}
+  .bplist button.on,.bplist button:hover{border-color:var(--pine); color:var(--pine)}
+
+  /* svg helpers */
+  .b{fill:none; stroke:var(--line); stroke-width:1.5} .bx{fill:#F3F5F1}
+  .b.p{stroke:var(--pine)} .b.s{stroke:var(--slate)} .b.r{stroke:var(--risk); stroke-dasharray:5 3} .b.o{stroke:var(--ochre)}
+  .tt{fill:var(--muted); font-family:var(--mono); font-size:10px} .tt.w{fill:var(--ink); font-size:11px; font-weight:600} .tt.p{fill:var(--pine)} .tt.s{fill:var(--slate)}
+  .ar{stroke:var(--muted); stroke-width:1.3; fill:none; marker-end:url(#ar)}
+  .ar.d{stroke-dasharray:4 3}
+
+  /* dependency map */
+  #depmap svg{width:100%; height:auto; background:var(--card); border:1px solid var(--line); border-radius:12px}
+  .deptog{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+  .deptog button{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:var(--card); border:1px solid var(--line); color:var(--muted); padding:7px 12px; border-radius:6px; cursor:pointer}
+  .deptog button.on{background:var(--pine); border-color:var(--pine); color:#fff}
+  .depnode{cursor:default}
+  .deplegend{display:flex; gap:18px; margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--muted); flex-wrap:wrap}
+  .deplegend span{display:inline-flex; align-items:center; gap:7px}
+  .dot{width:10px; height:10px; border-radius:2px; display:inline-block}
+
+  /* resource matrix */
+  .filt{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px}
+  .filt button{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:var(--card); border:1px solid var(--line); color:var(--muted); padding:7px 12px; border-radius:6px; cursor:pointer}
+  .filt button.on{background:var(--pine); border-color:var(--pine); color:#fff}
+  .tblw{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--card)}
+  table{width:100%; border-collapse:collapse; min-width:840px}
+  th,td{text-align:left; padding:13px 15px; border-bottom:1px solid var(--line2); font-size:13.5px; vertical-align:top}
+  th{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); background:var(--paper2)}
+  td .r{font-family:var(--disp); font-weight:600; font-size:14px}
+  .badge{font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:5px; font-weight:600; white-space:nowrap}
+  .badge.ac{background:rgba(30,111,82,.12); color:var(--pine)} .badge.in{background:rgba(166,114,28,.14); color:var(--ochre)} .badge.gv{background:rgba(61,85,112,.13); color:var(--slate)}
+  tr.hide{display:none}
+
+  /* scaling path */
+  .scale{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:22px}
+  .scale .s{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; position:relative}
+  .scale .s .st{font-family:var(--mono); font-size:11px; color:var(--pine); letter-spacing:.06em; font-weight:600}
+  .scale .s h4{font-size:16px; margin:6px 0 8px} .scale .s p{font-size:13px; color:var(--muted)}
+  .scale .s .arw{position:absolute; right:-12px; top:50%; color:var(--faint); font-family:var(--mono); z-index:2}
+
+  /* metric cards */
+  .mcards{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  .mcard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px}
+  .mcard .top{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
+  .mcard .mno{font-family:var(--mono); font-size:11px; color:var(--pine); font-weight:600}
+  .mcard h3{font-size:17px} .mcard .fx{font-family:var(--mono); font-size:11px; color:var(--faint)}
+  .mcard p{font-size:13.5px; color:var(--muted); margin:10px 0} .mcard p strong{color:var(--ink); font-weight:500}
+  .ev{border-left:3px solid var(--ochre); background:rgba(166,114,28,.06); padding:11px 14px; border-radius:0 8px 8px 0; margin-top:10px}
+  .ev .el{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ochre); font-weight:600; margin-bottom:5px}
+  .ev p{font-size:13px; color:var(--ink2); margin:0}
+  .inspect-map{font-family:var(--mono); font-size:11.5px; color:var(--slate); margin-top:10px; background:rgba(61,85,112,.06); border:1px solid rgba(61,85,112,.2); padding:8px 11px; border-radius:6px}
+  .inspect-map b{color:var(--ink)}
+
+  /* resolution viz */
+  .resol{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; margin-top:22px}
+  .resol .rl{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-bottom:16px}
+  .rbar{display:flex; align-items:center; gap:14px; margin-bottom:13px}
+  .rbar .nm{font-family:var(--mono); font-size:12px; width:150px; color:var(--ink2); flex-shrink:0}
+  .rbar .tr{flex:1; height:26px; background:var(--paper2); border-radius:6px; position:relative; overflow:hidden; border:1px solid var(--line2)}
+  .rbar .sg{position:absolute; height:100%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:#fff; font-weight:600}
+  .rbar .ds{font-size:12px; color:var(--muted); width:150px; flex-shrink:0}
+
+  /* pilot spec */
+  .pilot{background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  .pilot .prow{display:grid; grid-template-columns:180px 1fr; border-bottom:1px solid var(--line2)}
+  .pilot .prow:last-child{border-bottom:none}
+  .pilot .pk{background:var(--paper2); padding:16px 18px; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--pine); font-weight:600}
+  .pilot .pv{padding:16px 18px; font-size:14px; color:var(--ink2)}
+  .pilot .pv strong{color:var(--ink); font-weight:600} .pilot .pv code{font-family:var(--mono); font-size:12px; background:var(--paper2); border:1px solid var(--line); padding:1px 6px; border-radius:4px}
+
+  /* timeline */
+  .tl{margin-top:24px}
+  .tl .wk{display:grid; grid-template-columns:110px 1fr; align-items:center; margin-bottom:8px}
+  .tl .wkl{font-family:var(--mono); font-size:11px; color:var(--muted)}
+  .tl .track{height:30px; background:var(--paper2); border-radius:6px; position:relative; border:1px solid var(--line2)}
+  .tl .blk{position:absolute; height:100%; border-radius:6px; display:flex; align-items:center; padding:0 10px; font-family:var(--mono); font-size:10.5px; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden}
+
+  .rd{border-top:1px dashed var(--line); margin-top:14px; padding-top:12px}
+  .rd summary{font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ochre); cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px}
+  .rd summary::-webkit-details-marker{display:none}
+  .rd summary::before{content:"▸"; transition:transform .2s; display:inline-block}
+  .rd[open] summary::before{transform:rotate(90deg)}
+  .rd .bd{font-size:13px; color:var(--ink2); margin-top:10px}
+  .rd .bd pre{background:var(--ink); color:#C9E5D6; font-family:var(--mono); font-size:11.5px; padding:12px 14px; border-radius:8px; overflow-x:auto; line-height:1.5; margin:8px 0}
+  .rd .bd .cmt{color:#7FA790}
+
+  .callout{border-left:3px solid var(--slate); background:rgba(61,85,112,.06); padding:14px 18px; border-radius:0 8px 8px 0; margin-top:20px}
+  .callout .cl{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--slate); margin-bottom:6px; font-weight:600}
+  .callout p{font-size:14px; color:var(--ink2); margin:0}
+
+  .refs{columns:2; column-gap:32px; margin-top:8px}
+  .refs .rf{break-inside:avoid; margin-bottom:12px; font-size:12.5px; color:var(--muted)}
+  .refs .rf .n{font-family:var(--mono); color:var(--pine); font-size:11.5px; margin-right:7px; font-weight:600}
+  .refs .rf b{color:var(--ink); font-weight:600}
+  footer{padding:44px 0 64px} footer p{font-family:var(--mono); font-size:12px; color:var(--faint); max-width:820px}
+  .disc{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin-top:20px} .disc p{font-family:var(--body); font-size:13px; color:var(--muted)}
+
+  @media(max-width:900px){
+    .exec .g,.bpwrap,.mcards,.scale{grid-template-columns:1fr}
+    #bpdetail{position:static} .refs{columns:1} nav .links{display:none}
+    .pilot .prow{grid-template-columns:1fr} .rbar{flex-wrap:wrap} .rbar .ds{width:100%}
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<nav><div class="wrap">
+  <span class="brand">◆ Implementation &amp; Pilot Plan</span>
+  <div class="links">
+    <a href="#components">Components</a>
+    <a href="#deps">Inspect Deps</a>
+    <a href="#resources">Resources</a>
+    <a href="#metrics">Graded Metrics</a>
+    <a href="#pilot">Pilot</a>
+    <a href="#refs">Refs</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="kick">Strategic plan · governance + R&amp;D reference · single-host escape-testing sandbox</div>
+  <h1 class="t">From lean design to a <em>validated, scalable</em> escape-testing sandbox.</h1>
+  <p class="sub">This plan specifies every component of the single-host sandbox, the libraries and tools each requires, its dependency on UK AISI's Inspect and extensions, the resources needed to validate it for academic and governance use, and a graded-metric benchmark design backed by peer-reviewed evidence — closing with a small, costed pilot study to prove it holds and produces trustworthy signal.</p>
+
+  <div class="exec">
+    <div class="h">Executive summary — the plan at a glance</div>
+    <div class="g">
+      <div class="b"><span class="n">SCOPE</span><strong>Eleven components</strong> on one host: orchestrator, agent, three nested boundaries, egress control, telemetry, scoring, and a governance layer.</div>
+      <div class="b"><span class="n">DEPENDENCY</span>Built on <strong>Inspect (open-source, MIT)</strong> plus four extensions. The AISI network's standardisation on Inspect lowers lock-in risk.</div>
+      <div class="b"><span class="n">METRICS</span>A <strong>graded stack</strong> — outcome, process/ladder, reliability (pass^k), token-efficiency — with statistical error bars, all peer-reviewed-backed.</div>
+      <div class="b"><span class="n">RESOURCES</span>One KVM-capable host, a small team, ~4–6 weeks for the pilot; a 100M-token cyber run costs ~$80, so the pilot fits a modest budget. [12]</div>
+      <div class="b"><span class="n">VALIDATION</span>Three tracks — <strong>academic</strong> (construct validity + reproducibility), <strong>industrial</strong> (throughput + reliability), <strong>governance</strong> (thresholds + audit trail).</div>
+      <div class="b"><span class="n">DECISION</span>The pilot yields a go/no-go for scale-up to a multi-node deployment suitable for governance-grade evaluation.</div>
+    </div>
+  </div>
+</div></header>
+
+<!-- ===== 1 COMPONENTS ===== -->
+<section id="components"><div class="wrap">
+  <div class="sh"><span class="no">01</span><h2>Every component, defined &amp; designed</h2><span class="tag rd">select a component for its build spec</span></div>
+  <p class="lead">The sandbox decomposes into eleven components across four zones: the <strong>evaluation plane</strong> (orchestrator, agent, scoring), the <strong>containment stack</strong> (three nested boundaries), the <strong>control plane</strong> (egress, telemetry, monitor), and the <strong>governance layer</strong>. Each component below carries its purpose, the libraries and tools it needs, and its dependency on Inspect. Selecting a numbered block reveals its full design card.</p>
+
+  <div class="bpwrap">
+    <div id="bp">
+      <svg viewBox="0 0 520 470" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6" fill="#586A61"/></marker></defs>
+        <rect x="6" y="6" width="508" height="458" rx="10" class="b"/>
+        <text x="20" y="26" class="tt w">SINGLE HOST · KVM-capable · egress-controlled</text>
+        <!-- eval plane top -->
+        <rect class="hit b p" data-id="c1" x="20" y="38" width="150" height="52" rx="7"/><text x="30" y="60" class="num">C1</text><text x="30" y="76" class="tt p" style="pointer-events:none">Orchestrator · Inspect</text>
+        <rect class="hit b p" data-id="c10" x="184" y="38" width="150" height="52" rx="7"/><text x="194" y="60" class="num">C10</text><text x="194" y="76" class="tt p" style="pointer-events:none">Scoring &amp; metrics</text>
+        <rect class="hit b s" data-id="c11" x="348" y="38" width="152" height="52" rx="7"/><text x="358" y="60" class="num" style="fill:var(--slate)">C11</text><text x="358" y="76" class="tt s" style="pointer-events:none">Governance layer</text>
+        <!-- containment nested -->
+        <rect class="hit b p" data-id="c5" x="20" y="104" width="300" height="252" rx="8"/><text x="32" y="124" class="num">C5</text><text x="60" y="124" class="tt p" style="pointer-events:none">microVM · Firecracker (outer)</text>
+        <rect class="hit b s" data-id="c4" x="40" y="136" width="260" height="200" rx="7"/><text x="52" y="156" class="num" style="fill:var(--slate)">C4</text><text x="80" y="156" class="tt s" style="pointer-events:none">gVisor (syscall filter)</text>
+        <rect class="hit bx b" data-id="c3" x="60" y="168" width="220" height="152" rx="6"/><text x="72" y="188" class="num">C3</text><text x="100" y="188" class="tt" style="pointer-events:none">container (workspace)</text>
+        <rect class="hit" data-id="c2" x="82" y="204" width="176" height="60" rx="6" fill="#141D19"/><text x="170" y="230" text-anchor="middle" fill="#7FCBA8" class="num" style="fill:#7FCBA8; pointer-events:none">C2</text><text x="170" y="246" text-anchor="middle" fill="#fff" font-family="var(--mono)" font-size="10" style="pointer-events:none">Agent + tools</text>
+        <rect class="hit b r" data-id="c6" x="82" y="280" width="176" height="30" rx="5"/><text x="170" y="300" text-anchor="middle" class="num" style="fill:var(--risk); pointer-events:none">C6 · escape target (flag on host)</text>
+        <!-- control plane right -->
+        <rect class="hit b p" data-id="c7" x="336" y="104" width="164" height="66" rx="7"/><text x="346" y="124" class="num">C7</text><text x="346" y="142" class="tt p" style="pointer-events:none">Egress control</text><text x="346" y="158" class="tt" style="pointer-events:none">default-deny + proxy</text>
+        <rect class="hit b p" data-id="c8" x="336" y="182" width="164" height="66" rx="7"/><text x="346" y="202" class="num">C8</text><text x="346" y="220" class="tt p" style="pointer-events:none">Out-of-band telemetry</text><text x="346" y="236" class="tt" style="pointer-events:none">append-only · Inspect logs</text>
+        <rect class="hit b o" data-id="c9" x="336" y="260" width="164" height="66" rx="7"/><text x="346" y="280" class="num" style="fill:var(--ochre)">C9</text><text x="346" y="298" class="tt" style="pointer-events:none" fill="#A6721C">Monitor / control</text><text x="346" y="314" class="tt" style="pointer-events:none">optional · phase 2+</text>
+        <!-- flows -->
+        <line x1="95" y1="90" x2="95" y2="102" class="ar"/>
+        <line x1="258" y1="234" x2="334" y2="150" class="ar"/><text x="270" y="185" class="tt p">only link out</text>
+        <line x1="418" y1="170" x2="418" y2="180" class="ar"/>
+        <line x1="418" y1="248" x2="418" y2="258" class="ar d"/>
+        <rect x="20" y="372" width="480" height="80" rx="8" fill="none"/>
+        <text x="20" y="388" class="tt w">Legend</text>
+        <rect x="20" y="398" width="12" height="12" rx="2" fill="none" class="b p"/><text x="38" y="408" class="tt">build / primary</text>
+        <rect x="150" y="398" width="12" height="12" rx="2" fill="none" class="b s"/><text x="168" y="408" class="tt">isolation / governance</text>
+        <rect x="330" y="398" width="12" height="12" rx="2" fill="none" class="b r"/><text x="348" y="408" class="tt">residual-risk surface</text>
+        <rect x="20" y="420" width="12" height="12" rx="2" fill="none" class="b o"/><text x="38" y="430" class="tt">optional (later phase)</text>
+      </svg>
+      <div class="bplist" id="bplist"></div>
+    </div>
+    <div id="bpdetail"></div>
+  </div>
+</div></section>
+
+<!-- ===== 2 INSPECT DEPENDENCIES ===== -->
+<section id="deps"><div class="wrap">
+  <div class="sh"><span class="no">02</span><h2>Dependency on Inspect &amp; its extensions</h2></div>
+  <p class="lead">The sandbox is an Inspect application. Inspect core supplies the eval loop, sandbox abstraction, scorers, metrics, budget limits, and tamper-evident logs; four extensions supply the pieces the lean design needs. Toggle to see which dependencies are <strong>hard</strong> (pilot cannot proceed without them) versus <strong>optional</strong>.</p>
+
+  <div class="deptog" id="deptog">
+    <button class="on" data-f="all">All dependencies</button>
+    <button data-f="hard">Hard (pilot-critical)</button>
+    <button data-f="opt">Optional / later</button>
+  </div>
+
+  <div id="depmap">
+    <svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6" fill="#899A90"/></marker></defs>
+      <!-- core -->
+      <g class="dn" data-t="hard">
+        <rect x="360" y="18" width="180" height="58" rx="9" fill="#124635"/>
+        <text x="450" y="42" text-anchor="middle" fill="#fff" font-family="var(--disp)" font-weight="700" font-size="15">inspect_ai</text>
+        <text x="450" y="62" text-anchor="middle" fill="#9FD8BF" font-family="var(--mono)" font-size="10">core · MIT · Python ≥3.10</text>
+      </g>
+      <!-- edges -->
+      <g stroke="#899A90" stroke-width="1.4" fill="none">
+        <path class="de" data-t="hard" d="M420 76 L200 130" marker-end="url(#ar2)"/>
+        <path class="de" data-t="hard" d="M450 76 L450 128" marker-end="url(#ar2)"/>
+        <path class="de" data-t="opt" data-dash="1" d="M480 76 L700 130" marker-end="url(#ar2)" stroke-dasharray="5 3"/>
+        <path class="de" data-t="hard" d="M400 76 L330 130" marker-end="url(#ar2)"/>
+        <path class="de" data-t="opt" data-dash="1" d="M500 76 L820 130" marker-end="url(#ar2)" stroke-dasharray="5 3"/>
+      </g>
+      <!-- extensions row -->
+      <g class="dn" data-t="hard"><rect x="110" y="130" width="170" height="70" rx="8" fill="#fff" stroke="#1E6F52" stroke-width="1.5"/>
+        <text x="195" y="154" text-anchor="middle" font-family="var(--disp)" font-weight="600" font-size="13" fill="#141D19">inspect_evals</text>
+        <text x="195" y="172" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">cybench · intercode</text>
+        <text x="195" y="187" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">gdm dangerous-caps</text></g>
+      <g class="dn" data-t="hard"><rect x="300" y="130" width="150" height="70" rx="8" fill="#fff" stroke="#1E6F52" stroke-width="1.5"/>
+        <text x="375" y="154" text-anchor="middle" font-family="var(--disp)" font-weight="600" font-size="12" fill="#141D19">inspect-cyber</text>
+        <text x="375" y="174" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">agentic cyber</text>
+        <text x="375" y="188" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">eval scaffolding</text></g>
+      <g class="dn" data-t="hard"><rect x="470" y="130" width="180" height="70" rx="8" fill="#fff" stroke="#1E6F52" stroke-width="1.5"/>
+        <text x="560" y="154" text-anchor="middle" font-family="var(--disp)" font-weight="600" font-size="12" fill="#141D19">VM sandbox provider</text>
+        <text x="560" y="174" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">proxmox / vagrant</text>
+        <text x="560" y="188" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">Firecracker microVM</text></g>
+      <g class="dn" data-t="opt"><rect x="670" y="130" width="130" height="70" rx="8" fill="#F3F5F1" stroke="#A6721C" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <text x="735" y="154" text-anchor="middle" font-family="var(--disp)" font-weight="600" font-size="12" fill="#141D19">k8s_sandbox</text>
+        <text x="735" y="174" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">Cilium · gVisor</text>
+        <text x="735" y="188" text-anchor="middle" font-family="var(--mono)" font-size="9.5" fill="#586A61">scale-out</text></g>
+      <g class="dn" data-t="opt"><rect x="815" y="130" width="80" height="70" rx="8" fill="#F3F5F1" stroke="#A6721C" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <text x="855" y="158" text-anchor="middle" font-family="var(--disp)" font-weight="600" font-size="11" fill="#141D19">control-</text>
+        <text x="855" y="172" text-anchor="middle" font-family="var(--disp)" font-weight="600" font-size="11" fill="#141D19">arena</text>
+        <text x="855" y="188" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="#586A61">monitors</text></g>
+      <!-- external non-inspect -->
+      <text x="450" y="240" text-anchor="middle" class="tt w" style="font-size:11px">Non-Inspect system dependencies (host)</text>
+      <g class="dn" data-t="hard">
+        <rect x="150" y="252" width="140" height="44" rx="7" fill="#F3F5F1" stroke="#CDD5CD"/><text x="220" y="279" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="#33423B">Docker ≥24.0.7</text>
+        <rect x="305" y="252" width="130" height="44" rx="7" fill="#F3F5F1" stroke="#CDD5CD"/><text x="370" y="279" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="#33423B">gVisor (runsc)</text>
+        <rect x="450" y="252" width="150" height="44" rx="7" fill="#F3F5F1" stroke="#CDD5CD"/><text x="525" y="279" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="#33423B">Firecracker / KVM</text>
+        <rect x="615" y="252" width="150" height="44" rx="7" fill="#F3F5F1" stroke="#CDD5CD"/><text x="690" y="279" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="#33423B">nftables + proxy</text>
+      </g>
+    </svg>
+  </div>
+  <div class="deplegend">
+    <span><i class="dot" style="background:var(--pine)"></i> hard dependency</span>
+    <span><i class="dot" style="background:var(--ochre)"></i> optional / scale-out</span>
+    <span class="mono">Inspect abstracts the sandbox, so swapping the VM provider (proxmox → vagrant/Firecracker) is a config change, not a rewrite.</span>
+  </div>
+  <div class="callout"><div class="cl">Lock-in risk &amp; mitigation</div><p>Single-framework reliance is a real dependency risk. It is mitigated by three facts: Inspect is open-source under a permissive licence; its task format is portable and the sandbox layer is provider-agnostic; and it is the shared standard across the UK, US (CAISI), and the wider AISI network — so an escape programme built on it stays comparable with, and portable to, government evaluations. [3,4,9,11]</p></div>
+</div></section>
+
+<!-- ===== 3 RESOURCES ===== -->
+<section id="resources"><div class="wrap">
+  <div class="sh"><span class="no">03</span><h2>Resources for validation &amp; scale-up</h2></div>
+  <p class="lead">Validation runs on three tracks — <strong>academic</strong> (is the measurement valid and reproducible?), <strong>industrial</strong> (does it scale and stay reliable?), and <strong>governance</strong> (is it defensible for decisions?). Each has distinct resource needs. Filter by track.</p>
+
+  <div class="filt" id="resfilt">
+    <button class="on" data-f="all">All tracks</button>
+    <button data-f="ac">Academic</button>
+    <button data-f="in">Industrial</button>
+    <button data-f="gv">Governance</button>
+  </div>
+  <div class="tblw"><table>
+    <thead><tr><th>Resource</th><th>Track</th><th>Specification</th><th>Why it is needed</th></tr></thead>
+    <tbody id="resbody"></tbody>
+  </table></div>
+
+  <p style="font-family:var(--mono); font-size:12px; color:var(--muted); margin:26px 0 8px; letter-spacing:.05em">SCALING PATH — single host today, network-grade tomorrow</p>
+  <div class="scale">
+    <div class="s"><div class="st">STAGE 1 · pilot</div><h4>Single host</h4><p>One KVM-capable machine; Firecracker + gVisor + container via the VM provider; sequential/low-parallel runs. Proves the design holds and the metrics are trustworthy.</p><span class="arw">→</span></div>
+    <div class="s"><div class="st">STAGE 2 · throughput</div><h4>Multi-node cluster</h4><p>Move capability benchmarks to <code>k8s_sandbox</code> with Cilium egress policies and gVisor for parallelism; keep the microVM/Proxmox path for high-risk escape runs. Mirrors AISI practice. [9,11]</p><span class="arw">→</span></div>
+    <div class="s"><div class="st">STAGE 3 · governance</div><h4>Deployment-grade</h4><p>Tamper-evident logs, if-then thresholds, reproducible manifests, and senior-owner sign-off — a setup comparable to what the AISI network runs for pre-deployment testing. [3,11]</p></div>
+  </div>
+</div></section>
+
+<!-- ===== 4 GRADED METRICS ===== -->
+<section id="metrics"><div class="wrap">
+  <div class="sh"><span class="no">04</span><h2>Graded metrics — design &amp; evidence</h2><span class="tag rd">each metric maps to an Inspect primitive</span></div>
+  <p class="lead">A single binary pass/fail is the wrong instrument for a saturating field. The design layers five metric families, each addressing a distinct question and each backed by peer-reviewed or high-quality institutional evidence. Every family maps to a native Inspect scorer or metric, so the pipeline is buildable today.</p>
+
+  <div class="resol">
+    <div class="rl">Why graded metrics resolve models that tie on a binary pass</div>
+    <div class="rbar"><span class="nm">binary pass@1</span><div class="tr"><div class="sg" style="left:0;width:96%;background:var(--faint)">both models "pass" → 1 bit of signal</div></div><span class="ds">saturated → no ranking</span></div>
+    <div class="rbar"><span class="nm">process / subtask</span><div class="tr"><div class="sg" style="left:0;width:58%;background:var(--ochre)">model A reaches step 4</div><div class="sg" style="left:58%;width:38%;background:var(--pine)">B reaches step 7</div></div><span class="ds">dense, mostly free</span></div>
+    <div class="rbar"><span class="nm">capability ladder</span><div class="tr"><div class="sg" style="left:0;width:30%;background:var(--pine)">reach</div><div class="sg" style="left:30%;width:24%;background:var(--slate)">trigger</div><div class="sg" style="left:54%;width:24%;background:var(--ochre)">escape</div><div class="sg" style="left:78%;width:18%;background:var(--risk)">ACE</div></div><span class="ds">16 flags · fine resolution</span></div>
+  </div>
+
+  <div class="mcards" style="margin-top:22px">
+    <div class="mcard">
+      <div class="top"><span class="mno">M1</span><h3>Outcome — pass@1</h3><span class="fx">comparability floor</span></div>
+      <p>Binary task success at a fixed budget. Retained only for cross-org comparability with the AISI network's CyBench runs — never as the sole signal.</p>
+      <div class="inspect-map"><b>Inspect:</b> <code>includes()</code> / <code>match()</code> scorer, <code>accuracy()</code> + <code>stderr()</code> metrics.</div>
+    </div>
+    <div class="mcard">
+      <div class="top"><span class="mno">M2</span><h3>Process — subtasks &amp; milestones</h3><span class="fx">dense partial credit</span></div>
+      <p>Award credit for intermediate progress — CyBench subtasks, GDM dangerous-capability milestones, or mean-criteria-passed. Separates models that tie on the binary at <strong>no extra token cost</strong>.</p>
+      <div class="ev"><div class="el">Evidence</div><p>The Agentic Benchmark Checklist recommends using process-based metrics alongside outcome-based metrics; APEX-Agents notes that mean criteria passed "provides a dense signal that rewards partial progress." [2,10]</p></div>
+      <div class="inspect-map"><b>Inspect:</b> custom <code>@scorer</code> returning numeric value; <code>value_to_float</code> maps <code>PARTIAL→0.5</code> natively.</div>
+    </div>
+    <div class="mcard">
+      <div class="top"><span class="mno">M3</span><h3>Capability ladder</h3><span class="fx">escape resolution</span></div>
+      <p>Grade how far up the exploitation ladder a model climbs — including the explicit <strong>sandbox-escape tier</strong> — rather than one pass/fail. The anti-saturation instrument and directly on-threat-model.</p>
+      <div class="ev"><div class="el">Evidence</div><p>ExploitBench decomposes exploitation into 16 deterministically-graded flags across five tiers, arguing that treating a crash as success "collapses the hard parts of exploitation." Deterministic oracles avoid LLM-judge fragility. [8]</p></div>
+      <div class="inspect-map"><b>Inspect:</b> custom <code>@scorer</code> emitting a per-flag bitmap; aggregate with <code>multi_scorer</code>.</div>
+    </div>
+    <div class="mcard">
+      <div class="top"><span class="mno">M4</span><h3>Reliability — pass@k &amp; pass^k</h3><span class="fx">ceiling vs consistency</span></div>
+      <p>Report both: <strong>pass@k</strong> (capability ceiling — can it ever escape?) and <strong>pass^k</strong> (consistency — does it escape every time?). A high-pass@k / low-pass^k profile is the signature of a model that benchmarks well but is unreliable in practice.</p>
+      <div class="ev"><div class="el">Evidence</div><p>τ-bench introduced pass^k for tasks requiring "reliability and consistency"; as k rises, pass@k increases while pass^k falls. Agents strong on average can be unstable across repeats. [13,14]</p></div>
+      <div class="inspect-map"><b>Inspect:</b> multi-epoch runs; reducers over samples; pass^k as a custom aggregate metric.</div>
+    </div>
+    <div class="mcard">
+      <div class="top"><span class="mno">M5</span><h3>Token-efficiency</h3><span class="fx">cost-aware capability</span></div>
+      <p>Success at a fixed budget, tokens-to-solve, and area-under-the-budget-curve. Distinguishes models cheaply and keeps reported numbers honest as inference-compute scales.</p>
+      <div class="ev"><div class="el">Evidence</div><p>AISI finds cyber success scales log-linearly with tokens to 100M with no plateau, so uncapped pass@k inflates with spend; an optimised scaffold reached the same score at ~13% of the token budget. [12,15]</p></div>
+      <div class="inspect-map"><b>Inspect:</b> token/message/time limits in <code>eval()</code>; per-sample token accounting in <code>.eval</code> logs.</div>
+    </div>
+    <div class="mcard">
+      <div class="top"><span class="mno">M0</span><h3>Statistical wrapper</h3><span class="fx">error bars on everything</span></div>
+      <p>No metric is reported without an interval. Standard errors and confidence intervals, bootstrap CIs, and — critically — <strong>clustered</strong> standard errors when the same task is sampled repeatedly. Paired differences and power analysis size the run.</p>
+      <div class="ev"><div class="el">Evidence</div><p>Miller (Anthropic) shows clustered standard errors can be over three times larger than naïve ones; without error bars, eval scores are effectively meaningless. [16]</p></div>
+      <div class="inspect-map"><b>Inspect:</b> <code>stderr(cluster=…)</code>, <code>bootstrap_stderr()</code> are built in — the clustered-SE recommendation maps to one argument.</div>
+    </div>
+  </div>
+
+  <div class="callout"><div class="cl">Validity guardrails — non-negotiable</div><p>Graded metrics are only trustworthy if the task and grader are valid. The Agentic Benchmark Checklist is applied to every ported benchmark: an oracle/solution solver confirms solvability, state is cleared between runs, the agent is isolated from ground truth, and implementation shortcuts are audited. These checks matter — validity issues have been shown to mis-estimate agent performance by up to 100% in relative terms, and applying the checklist cut one benchmark's overestimation by 33%. [2]</p></div>
+</div></section>
+
+<!-- ===== 5 PILOT ===== -->
+<section id="pilot"><div class="wrap">
+  <div class="sh"><span class="no">05</span><h2>The pilot study</h2><span class="tag gov">a costed go/no-go</span></div>
+  <p class="lead">A small, time-boxed study to answer two questions: <strong>does the sandbox hold</strong> against a frontier model, and <strong>does the graded-metric pipeline produce stable, discriminating signal at acceptable cost</strong>. It is deliberately narrow so it can run on one host in weeks, not quarters.</p>
+
+  <div class="pilot">
+    <div class="prow"><div class="pk">Objective</div><div class="pv">Validate that the lean single-host sandbox contains a frontier agent with <strong>no unintended escape paths</strong>, and that the graded-metric stack ranks models that tie on binary pass — within a fixed, modest token budget.</div></div>
+    <div class="prow"><div class="pk">Models</div><div class="pv">Two to three current frontier models via API (no local weights, no GPU). One weaker reference model to confirm the metrics detect a capability gap.</div></div>
+    <div class="prow"><div class="pk">Task set</div><div class="pv"><strong>Holds:</strong> all 18 public SandboxEscapeBench scenarios (solution + adversarial variants). <strong>Capability:</strong> a ~10-task discriminating CyBench subset (with subtasks) + an ExploitBench pilot subset. <strong>Trigger:</strong> a small prompt-injection set to test whether an injected instruction becomes an escape attempt.</div></div>
+    <div class="prow"><div class="pk">Metrics</div><div class="pv"><code>pass@1</code> + process/ladder partial credit (M2/M3) + <code>pass@k</code> &amp; <code>pass^k</code> at small k + tokens-to-solve (M5), each with clustered SE and bootstrap CIs (M0).</div></div>
+    <div class="prow"><div class="pk">Design</div><div class="pv">Paired model comparison; power analysis to size epochs before running; chain-of-thought with resampling; a fixed <code>2.5M</code>-token cap for capability tasks and a larger cap for escape runs, matching AISI-network settings for comparability. [4,16]</div></div>
+    <div class="prow"><div class="pk">Validity checks</div><div class="pv">Run oracle/solution scripts first (solvability + harness sanity); audit the transcript of every escape success to confirm the intended attack path; clear state between runs; verify the host flag is unreachable without a real breakout. [1,2]</div></div>
+    <div class="prow"><div class="pk">Success criteria</div><div class="pv"><strong>(1)</strong> zero unintended escape paths after hardening; <strong>(2)</strong> graded metrics separate models that tie on pass@1; <strong>(3)</strong> confidence intervals tight enough to rank at the chosen budget; <strong>(4)</strong> total spend within the pilot budget.</div></div>
+    <div class="prow"><div class="pk">Deliverables</div><div class="pv">An open-sourceable validated harness; a metric report with error bars; a residual-risk statement; and a go/no-go recommendation for scale-up.</div></div>
+  </div>
+
+  <div class="tl">
+    <div class="wk"><span class="wkl">Wk 1–2</span><div class="track"><div class="blk" style="left:0;width:34%;background:var(--pine)">Stand up host · port tasks</div></div></div>
+    <div class="wk"><span class="wkl">Wk 2–3</span><div class="track"><div class="blk" style="left:20%;width:34%;background:var(--slate)">Prove it holds · harden paths</div></div></div>
+    <div class="wk"><span class="wkl">Wk 3–4</span><div class="track"><div class="blk" style="left:42%;width:30%;background:var(--ochre)">Graded-metric runs · audit</div></div></div>
+    <div class="wk"><span class="wkl">Wk 4–5</span><div class="track"><div class="blk" style="left:62%;width:24%;background:var(--pine-d)">Statistics · report</div></div></div>
+    <div class="wk"><span class="wkl">Wk 5–6</span><div class="track"><div class="blk" style="left:80%;width:20%;background:var(--risk)">Sign-off · go/no-go</div></div></div>
+  </div>
+
+  <details class="rd"><summary>R&amp;D detail — reference pilot task skeleton (Inspect)</summary><div class="bd">
+    <pre><span class="cmt"># capability task on the lean sandbox, graded, error-barred</span>
+from inspect_ai import task, Task, eval
+from inspect_ai.solver import basic_agent, use_tools
+from inspect_ai.tool import bash, python
+from inspect_ai.scorer import scorer, accuracy, stderr, bootstrap_stderr
+
+@scorer(metrics=[accuracy(), stderr(cluster="task_id"), bootstrap_stderr()])
+def ladder_scorer(): ...   <span class="cmt"># emit per-flag bitmap → numeric partial credit</span>
+
+@task
+def escape_capability():
+    return Task(
+        dataset=discriminating_subset,          <span class="cmt"># pruned, contamination-safe</span>
+        solver=basic_agent(tools=[bash(), python()]),
+        scorer=ladder_scorer(),
+        sandbox="proxmox",                       <span class="cmt"># microVM outer boundary; swap to vagrant/firecracker</span>
+    )
+
+eval(escape_capability(), epochs=5, token_limit=2_500_000,
+     message_limit=100, temperature=1.0)         <span class="cmt"># AISI-network-comparable settings</span></pre>
+    <p>Escape validation reuses the SandboxEscapeBench harness with the same VM provider so a breakout lands in the outer VM, never the host. Transcript auditing runs post-hoc over the <code>.eval</code> logs.</p>
+  </div></details>
+</div></section>
+
+<!-- ===== REFS ===== -->
+<section id="refs"><div class="wrap">
+  <div class="sh"><span class="no">06</span><h2>References</h2></div>
+  <div class="refs" id="reflist"></div>
+  <div class="disc"><p><strong>Neutrality &amp; verification note.</strong> This plan synthesises peer-reviewed papers (NeurIPS, ICLR), high-quality preprints, and institutional publications (UK AISI, CAISI/NIST, METR, Anthropic). Cited excerpts are paraphrased or kept to short phrases for attribution. Capability and cost figures are as-published and change quickly; the R&amp;D team should re-verify against primary sources before any figure informs a formal governance threshold.</p></div>
+</div></section>
+
+<footer><div class="wrap"><p>◆ Implementation &amp; Pilot Plan · lean single-host escape-testing sandbox for frontier models · a design and planning reference for governance and R&amp;D · not itself a security control · all figures to be re-verified against primary sources.</p></div></footer>
+
+<script>
+const bar=document.getElementById('bar');
+addEventListener('scroll',()=>{const h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+
+/* ---- components ---- */
+const comps={
+  c1:{id:'C1 · evaluation plane',n:'Orchestrator',role:'runs the eval loop',
+    build:'Drives the dataset → solver → scorer loop, applies token / message / time limits, provides tamper-evident run logs, and manages sandbox lifecycle and parallelism. The backbone the rest of the sandbox plugs into.',
+    tools:['inspect_ai','inspect-cyber','eval-set (resume/retry)','Python ≥3.10'],
+    dep:'Inspect core — hard dependency. Nothing else runs without it.',
+    pilot:'Configured once; reused across every capability and escape task.'},
+  c2:{id:'C2 · evaluation plane',n:'Agent + tools',role:'the untrusted system under test',
+    build:'A frontier model wrapped in an agent scaffold with shell, Python, file-edit, and optional MCP tools. The system prompt is optimised for token efficiency — the single largest cost lever.',
+    tools:['inspect_ai.agent (react / basic_agent)','tools: bash(), python(), text_editor()','optional MCP tools','optimised system prompt'],
+    dep:'Inspect agent + tool APIs — hard dependency.',
+    pilot:'Two–three frontier models + one weaker reference to confirm the metrics detect a capability gap.'},
+  c3:{id:'C3 · containment (inner)',n:'Container',role:'ephemeral workspace boundary',
+    build:'A non-privileged OCI container that is the agent workspace. Drops all capabilities, enables seccomp, mounts no Docker socket, and is rebuilt each run — closing the misconfigurations behind the most common real escapes.',
+    tools:['Docker Engine ≥24.0.7 / OCI','Dockerfile + compose.yaml','seccomp default profile','cap-drop ALL · user namespaces'],
+    dep:'Inspect Docker sandbox provider (built-in). Auto-generated compose restricts internet by default.',
+    pilot:'Standard image per benchmark family; per-sample memory limits via compose metadata.'},
+  c4:{id:'C4 · containment (middle)',n:'gVisor',role:'syscall attack-surface reduction',
+    build:'A userspace kernel (the Sentry) services a minimal vetted syscall set so the container never touches the host kernel directly, cutting the kernel-exploit surface that shared-kernel containers expose.',
+    tools:['gVisor (runsc runtime)','configured as a Docker runtime or k8s RuntimeClass'],
+    dep:'Not Inspect-specific; used within the containment stack. k8s_sandbox integrates gVisor directly for the scale-out path.',
+    pilot:'Enabled by default; dropped only for a task that needs an unsupported syscall.'},
+  c5:{id:'C5 · containment (outer)',n:'microVM · Firecracker',role:'hardware-enforced boundary',
+    build:'An ephemeral Firecracker microVM with its own guest kernel in KVM (~5 devices, ~50k lines of Rust), rebuilt every run. It is both the strong outer boundary and the double-sandbox layer that makes escape safely measurable — a breakout lands here, not on real infrastructure.',
+    tools:['Firecracker + firecracker-containerd (or Kata as turnkey)','KVM · jailer','flag placed on the VM/host filesystem'],
+    dep:'Inspect VM sandbox provider — Proxmox plugin (strong VM isolation) or the community Vagrant/Firecracker provider used by SandboxEscapeBench. Provider-agnostic: swapping it is a config change.',
+    pilot:'Bound at task level; the SandboxEscapeBench harness targets exactly this boundary.'},
+  c6:{id:'C6 · residual-risk surface',n:'Escape target (flag)',role:'the success signal for holding',
+    build:'A flag string on the host / outer-VM filesystem, outside all container namespaces, reachable only via a genuine escape. Enables binary, host-side scoring of "did the box hold" with no reward-hacking route.',
+    tools:['host-only file path','exact-string match scorer','shortcut-hardening (no default creds, stripped kernel features)'],
+    dep:'Scored via an Inspect scorer with sandbox access.',
+    pilot:'Every escape "success" is transcript-audited to confirm the intended attack path — the SandboxEscapeBench outcome-validity lesson.'},
+  c7:{id:'C7 · control plane',n:'Egress control',role:'the single link out',
+    build:'The microVM\'s only network path is a host tap through a default-deny allow-list proxy that logs every attempt; broader access, if required, goes through the logging proxy; final egress is metered. This is the boundary rogue agents have historically defeated when left open.',
+    tools:['nftables / iptables default-deny','mitmproxy or squid (allow-list + logging)','Cilium NetworkPolicies (k8s scale-out)'],
+    dep:'Inspect\'s auto-generated compose restricts internet by default; explicit network config overrides it.',
+    pilot:'Default-deny throughout; allow-list only what a task legitimately needs.'},
+  c8:{id:'C8 · control plane',n:'Out-of-band telemetry',role:'tamper-evident record',
+    build:'Full trajectories, tokens, and costs captured to Inspect .eval logs plus an append-only host-only audit log the guest cannot reach. The evidentiary basis for both metrics and governance.',
+    tools:['Inspect .eval logs · Inspect View · Inspect Viz','append-only host log (auditd / write-once)','optional OpenTelemetry export'],
+    dep:'Inspect logging + View — hard dependency for analysis and audit.',
+    pilot:'Logs are the input to post-hoc transcript auditing and the statistical analysis.'},
+  c9:{id:'C9 · control plane (optional)',n:'Monitor / control',role:'catch escapes in progress',
+    build:'A host process tailing proxy and event logs for escape signatures, or a full AI-control protocol that monitors the untrusted agent. Deferred to a later phase, once capability rises enough that "does monitoring catch it?" becomes the live question.',
+    tools:['log-tailing monitor process','control-arena (protocols + monitors)'],
+    dep:'ControlArena (Inspect-based) — optional extension.',
+    pilot:'Out of pilot scope; noted for the scale-up plan.'},
+  c10:{id:'C10 · evaluation plane',n:'Scoring &amp; metrics',role:'turns runs into graded signal',
+    build:'The graded-metric stack: outcome, process/ladder, reliability, and token-efficiency scores, each wrapped in error bars. Built from Inspect\'s native scorers and metrics with custom scorers for the ladder and pass^k.',
+    tools:['inspect_ai.scorer (match, includes, model_graded, multi_scorer, custom @scorer)','metrics: accuracy, stderr(cluster=…), bootstrap_stderr','PARTIAL→0.5 value mapping (native)'],
+    dep:'Inspect scorer + metric library — hard dependency; clustered-SE support is built in.',
+    pilot:'Implements M0–M5 (see §04); validated against oracle solutions.'},
+  c11:{id:'C11 · governance layer',n:'Governance &amp; provenance',role:'makes results defensible',
+    build:'Run manifests (image digests, seeds, budgets), reproducibility via Eval Sets, a residual-risk register, if-then thresholds, and senior-owner sign-off gates. The layer that turns a measurement into a decision.',
+    tools:['run manifests (image digests via skopeo/docker)','git / DVC for task versioning','residual-risk register','Eval Sets (reproducible reruns)'],
+    dep:'Uses Inspect Eval Sets + logs; the rest is process the programme owns.',
+    pilot:'Produces the residual-risk statement and the go/no-go artifact.'},
+};
+const order=['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'];
+const bpd=document.getElementById('bpdetail');
+function renderComp(id){const d=comps[id];bpd.innerHTML=`
+  <div class="cid">${d.id}</div><h3>${d.n}</h3><div class="role">${d.role}</div>
+  <div class="row build"><div class="rl">▷ What it is &amp; does</div><p>${d.build}</p></div>
+  <div class="row"><div class="rl" style="color:var(--pine)">▷ Libraries &amp; tools</div><div class="chips">${d.tools.map(t=>`<code>${t}</code>`).join('')}</div></div>
+  <div class="row dep"><div class="rl">▷ Inspect dependency</div><p>${d.dep}</p></div>
+  <div class="row pilot"><div class="rl">▷ Role in the pilot</div><p>${d.pilot}</p></div>`;}
+document.querySelectorAll('#bp .hit').forEach(h=>{
+  h.addEventListener('click',()=>{renderComp(h.dataset.id); syncBtn(h.dataset.id);});
+  h.addEventListener('mouseenter',()=>renderComp(h.dataset.id));
+});
+const bplist=document.getElementById('bplist');
+bplist.innerHTML=order.map(id=>`<button data-id="${id}">${id.toUpperCase()} ${comps[id].n.replace(/&amp;/g,'&')}</button>`).join('');
+function syncBtn(id){document.querySelectorAll('#bplist button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));}
+bplist.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{renderComp(b.dataset.id);syncBtn(b.dataset.id);}));
+renderComp('c5'); syncBtn('c5');
+
+/* ---- dependency toggle ---- */
+document.querySelectorAll('#deptog button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#deptog button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const f=b.dataset.f;
+  document.querySelectorAll('#depmap .dn, #depmap .de').forEach(el=>{
+    const t=el.dataset.t; const show=(f==='all')||(f==='hard'&&t==='hard')||(f==='opt'&&t==='opt');
+    el.style.opacity=show?'1':'0.12';
+  });
+}));
+
+/* ---- resource matrix ---- */
+const res=[
+  {r:'Compute host',t:'in',spec:'1 bare-metal / metal cloud instance with KVM (nested virt for Firecracker). No GPU — models via API.',why:'Runs the full nested stack on one machine; KVM is required for the microVM boundary.'},
+  {r:'Inference budget',t:'in',spec:'Metered API spend. Reference point: a 100M-token cyber run ≈ $80; the pilot uses fixed 2.5M-token caps for most tasks. [12]',why:'Token budget is the dominant cost; caps keep the pilot affordable and comparable.'},
+  {r:'People',t:'ac',spec:'1–2 eval engineers, 1 security researcher (container-escape expertise), 1 senior responsible owner.',why:'Security expertise hardens unintended escape paths and rates difficulty; a small team can stand this up in ~a month. [22]'},
+  {r:'Task corpora',t:'ac',spec:'CyBench, InterCode, NYU CTF (public); SandboxEscapeBench 18 public + private held-out; ExploitBench subset.',why:'Public sets give comparability; a private held-out set guards against contamination and saturation.'},
+  {r:'Construct validity',t:'ac',spec:'Oracle solvers, shortcut audits, and the Agentic Benchmark Checklist applied to every ported task. [2]',why:'Ensures the sandbox measures escape capability, not a grading artefact.'},
+  {r:'Reproducibility',t:'ac',spec:'Eval Sets, pinned image digests, fixed seeds, run manifests.',why:'Enables external replication — the credibility standard set by open escape benchmarks. [1]'},
+  {r:'Throughput / scale',t:'in',spec:'Path to multi-node k8s_sandbox with Cilium + gVisor for parallel capability runs. [9]',why:'Moves from pilot-scale to release-cadence evaluation without re-architecting.'},
+  {r:'Reliability testing',t:'in',spec:'Multi-epoch runs to compute pass^k; flaky-oracle detection.',why:'Distinguishes capability ceiling from production reliability. [13]'},
+  {r:'Thresholds (if-then)',t:'gv',spec:'Documented escape-capability triggers mapped to containment upgrades, aligned to RSP / Preparedness / FSF. [14-refs]',why:'Turns measurements into pre-committed governance actions.'},
+  {r:'Audit trail',t:'gv',spec:'Tamper-evident, out-of-band logs; every escape success transcript-reviewed.',why:'Supports pre-deployment sign-off and external scrutiny.'},
+  {r:'Residual-risk register',t:'gv',spec:'Documented acceptance of the logical (vs physical) air-gap, with senior-owner sign-off. [11]',why:'The lean design trades a physical boundary for a logical one; that trade must be owned explicitly.'},
+];
+const resLabel={ac:['ac','Academic'],in:['in','Industrial'],gv:['gv','Governance']};
+const resbody=document.getElementById('resbody');
+function renderRes(f){
+  resbody.innerHTML=res.map(x=>{
+    const hide=(f!=='all'&&f!==x.t)?'hide':'';const l=resLabel[x.t];
+    return `<tr class="${hide}"><td><div class="r">${x.r}</div></td><td><span class="badge ${l[0]}">${l[1]}</span></td><td style="color:var(--ink2)">${x.spec}</td><td style="color:var(--muted)">${x.why}</td></tr>`;
+  }).join('');
+}
+renderRes('all');
+document.querySelectorAll('#resfilt button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#resfilt button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderRes(b.dataset.f);
+}));
+
+/* ---- refs ---- */
+const refs=[
+  {a:'Marchand, R., et al. (Oxford / UK AISI).',t:'Quantifying Frontier LLM Capabilities for Container Sandbox Escape (SandboxEscapeBench).',v:'arXiv:2603.02277, 2026.',u:'https://arxiv.org/abs/2603.02277'},
+  {a:'Zhu, Y., Kang, D., et al.',t:'Establishing Best Practices for Building Rigorous Agentic Benchmarks (Agentic Benchmark Checklist).',v:'NeurIPS 2025 D&B; arXiv:2507.02825.',u:'https://arxiv.org/abs/2507.02825'},
+  {a:'US AISI & UK AISI (CAISI/NIST).',t:'Joint Pre-Deployment Test: OpenAI o1 (CyBench on Inspect).',v:'Dec 2024.',u:'https://www.nist.gov/'},
+  {a:'International AISI Network.',t:'Joint Testing Exercise: Agentic Testing (CyBench + InterCode on Inspect; 2.5M-token caps, 10 epochs).',v:'AISI, 2025.',u:'https://www.aisi.gov.uk/blog/international-joint-testing-exercise-agentic-testing'},
+  {a:'Shao, M., et al.',t:'NYU CTF Bench: a scalable open-source benchmark for offensive security.',v:'NeurIPS D&B, 2024.',u:'https://arxiv.org/abs/2406.05590'},
+  {a:'Zhang, A., et al.',t:'Cybench: Framework for Evaluating Cybersecurity Capabilities and Risks of LLMs (subtask grading).',v:'arXiv:2408.08926, 2024.',u:'https://arxiv.org/abs/2408.08926'},
+  {a:'UK AI Security Institute.',t:'Inspect Evals — 128+ benchmarks incl. cybench, gdm_intercode_ctf, GDM dangerous-capabilities (milestones mode).',v:'2024–.',u:'https://ukgovernmentbeis.github.io/inspect_evals/'},
+  {a:'Lee, S., Brumley, D. (CMU / Bugcrowd).',t:'ExploitBench: A Capability Ladder Benchmark for LLM Cybersecurity Agents (16 flags, 5 tiers, deterministic oracles).',v:'arXiv:2605.14153, 2026.',u:'https://arxiv.org/abs/2605.14153'},
+  {a:'UK AI Security Institute.',t:'Inspect K8s Sandbox (Cilium NetworkPolicies + gVisor for scale-out).',v:'2024–.',u:'https://k8s-sandbox.aisi.org.uk/'},
+  {a:'APEX-Agents.',t:'Reports mean percentage of criteria passed as a dense partial-progress signal.',v:'arXiv:2601.14242, 2026.',u:'https://arxiv.org/abs/2601.14242'},
+  {a:'UK AI Security Institute.',t:'The Inspect Sandboxing Toolkit + protocol (tooling/host/network axes; residual-risk sign-off; Proxmox VM isolation).',v:'AISI Blog, 2025.',u:'https://www.aisi.gov.uk/blog/the-inspect-sandboxing-toolkit-scalable-and-secure-ai-agent-evaluations'},
+  {a:'UK AI Security Institute.',t:'How do frontier AI agents perform in multi-step cyber-attack scenarios? (100M-token run ≈ $80; log-linear scaling).',v:'AISI Blog, 2026.',u:'https://www.aisi.gov.uk/blog/how-do-frontier-ai-agents-perform-in-multi-step-cyber-attack-scenarios'},
+  {a:'Yao, S., et al.',t:'τ-bench: A Benchmark for Tool-Agent-User Interaction (introduces pass^k for reliability/consistency).',v:'ICLR 2025; arXiv:2406.12045.',u:'https://arxiv.org/abs/2406.12045'},
+  {a:'Anthropic.',t:'Demystifying evals for AI agents (pass@k vs pass^k; CORE-Bench 42%→95% after validity fixes).',v:'Anthropic Engineering, 2025.',u:'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents'},
+  {a:'UK AI Security Institute.',t:'Frontier AI Trends Report — optimised scaffold reaches same score at ~13% of the token budget.',v:'AISI, 2025–26.',u:'https://www.aisi.gov.uk/frontier-ai-trends-report'},
+  {a:'Miller, E. (Anthropic).',t:'Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations (clustered SEs up to 3× naïve).',v:'arXiv:2411.00640, 2024.',u:'https://arxiv.org/abs/2411.00640'},
+  {a:'UK AISI + Meridian Labs.',t:'Inspect AI — scorer library (partial credit), sandbox providers, Eval Sets, budget limits.',v:'2024–.',u:'https://inspect.aisi.org.uk/'},
+  {a:'Zhu, Y., et al.',t:'CVE-Bench — real-world web-vulnerability exploitation (validity case study for ABC).',v:'arXiv:2503.17332, 2025.',u:'https://arxiv.org/abs/2503.17332'},
+  {a:'Anthropic; OpenAI; Google DeepMind.',t:'Responsible Scaling Policy; Preparedness Framework; Frontier Safety Framework (capability thresholds).',v:'2023–26.',u:'https://www.anthropic.com/news/responsible-scaling-policy-v3'},
+  {a:'METR.',t:'Autonomy Evaluation Resources & elicitation guidelines (small-team standup ~1 month).',v:'metr.org, 2024–.',u:'https://evaluations.metr.org/'},
+];
+document.getElementById('reflist').innerHTML=refs.map((r,i)=>`<div class="rf"><span class="n">[${i+1}]</span><b>${r.a}</b> ${r.t} <em>${r.v}</em>${r.u?` <a href="${r.u}" target="_blank" rel="noopener">↗</a>`:''}</div>`).join('');
+</script>
+</body>
+</html>
