@@ -1,6 +1,6 @@
 # Website language and editing guide
 
-The default homepage is Japanese. This is a static site: no build step, language-detection script, or redirect is required.
+The default homepage is English. This is a static site: no build step, language-detection script, or redirect is required.
 
 | File | Purpose |
 | --- | --- |
@@ -13,9 +13,9 @@ The default homepage is Japanese. This is a static site: no build step, language
 
 The EN / JP controls always link directly to the canonical language pages. Résumé links also return to the corresponding canonical homepage. Visitors' browser language does not override the selected default.
 
-## Make English the default later
+## Change the default language
 
-Copy **all contents** of `index-en.html` into `index.html`, then commit the change to the branch used by GitHub Pages. No other link changes are needed.
+The current `index.html` is an exact copy of `index-en.html`. To switch the default, copy **all contents** of the desired canonical language page into `index.html`, then commit the change to the branch used by GitHub Pages. No other link changes are needed.
 
 From a local checkout:
 
