@@ -25,3 +25,9 @@ html:lang(ja) article p,html:lang(ja) article>a{line-height:1.8}
 .paper-translation{color:var(--muted);font-size:var(--meta);line-height:1.8;margin:4px 0 8px}
 @media(max-width:760px){.language-switch{margin-bottom:18px}}
 @media print{.language-switch{display:none}}
+
+
+/* Keep profile links in two balanced rows, with wrapping on small screens. */
+.profile-links{flex-direction:column;align-items:center;gap:6px}
+.profile-link-row{display:flex;justify-content:center;align-items:baseline;flex-wrap:wrap;gap:6px 8px}
+.profile-link-row a{white-space:nowrap}
